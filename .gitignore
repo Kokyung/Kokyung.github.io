@@ -4,3 +4,4 @@ dist/
 .migration/
 .env
 *.log
+.openai/
