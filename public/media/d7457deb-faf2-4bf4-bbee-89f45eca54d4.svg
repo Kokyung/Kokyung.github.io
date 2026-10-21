@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1080" viewBox="0 0 1440 1080" role="img" aria-labelledby="title desc">
+  <title id="title">AI 에이전트 개발 파이프라인</title>
+  <desc id="desc">Unity 6 XR 프로젝트의 코드 개발, 에디터 제어, 3D 모델링 흐름. Claude Code가 Unity 프로젝트의 코드를 작성하고 Codex 코드 리뷰가 피드백한다. Claude Code는 Unity CLI MCP의 주 제어 경로와 Unity Assistant Package MCP의 보조 제어 경로를 통해 Unity Editor를 제어한다. 3D 모델링은 Codex → Blender → Codex → Unity 순서다. Codex가 모델링 작업을 지시하고, Blender의 결과물을 전달받은 Codex가 Unity에서 FBX를 임포트한다.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 Z" fill="#5d626c"/></marker>
+    <style>
+      text { font-family: 'Malgun Gothic', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; fill: #202733; }
+      .heading { font-size: 23px; font-weight: 700; }
+      .name { font-size: 23px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .note { font-size: 16px; fill: #606976; }
+      .label { font-size: 16px; fill: #505966; text-anchor: middle; }
+      .box { stroke-width: 1.8; }
+      .line { fill: none; stroke: #5d626c; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 9 8; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1080" rx="26" fill="#f7f7f5"/>
+  <text x="72" y="72" font-size="34" font-weight="700">AI 에이전트 개발 파이프라인</text>
+  <text x="72" y="110" font-size="19" fill="#606976">Unity 6 XR 프로젝트 — 코드 작성, 리뷰, 에디터 제어, 3D 모델링을 역할과 프로세스별로 분리</text>
+  <rect id="white-panel" x="62" y="150" width="1316" height="880" rx="24" fill="#fff" stroke="#d9dcd9" stroke-width="2"/>
+
+  <g id="code-development">
+    <text class="heading" x="100" y="201">코드 개발 흐름</text>
+    <rect class="box" x="100" y="235" width="280" height="130" rx="20" fill="#f5e8df" stroke="#cc916a"/>
+    <text class="name" x="130" y="276">Claude Code</text>
+    <text class="body" x="130" y="309">코드 작성</text>
+    <text class="note" x="130" y="339">메인 구현 에이전트</text>
+
+    <path class="line" d="M380 300 H549"/>
+    <text class="label" x="465" y="283">작성 / 수정</text>
+    <rect class="box" x="550" y="235" width="280" height="130" rx="20" fill="#f1f2f0" stroke="#949994"/>
+    <text class="name" x="582" y="276">Unity 프로젝트</text>
+    <text class="body" x="582" y="309">소스 / 에셋 / Git</text>
+    <text class="note" x="582" y="339">공유 코드베이스</text>
+
+    <path class="line dashed" d="M830 300 H1039"/>
+    <text class="label" x="935" y="283">변경사항 리뷰</text>
+    <rect class="box" x="1040" y="235" width="300" height="130" rx="20" fill="#e8eef8" stroke="#7193d3"/>
+    <text class="name" x="1070" y="276">Codex — 코드 리뷰</text>
+    <text class="body" x="1070" y="309">코드 검토 및 검증</text>
+    <text class="note" x="1070" y="339">별도 리뷰 프로세스</text>
+
+    <path class="line dashed" d="M1190 365 V400 Q1190 414 1176 414 H254 Q240 414 240 400 V366"/>
+    <rect x="550" y="398" width="330" height="32" fill="#fff"/>
+    <text class="label" x="715" y="420">리뷰 피드백 → 코드 수정 반복</text>
+  </g>
+
+  <path d="M100 458 H1340" stroke="#e9ebe8"/>
+  <g id="editor-control">
+    <text class="heading" x="100" y="501">Unity Editor 제어</text>
+    <rect class="box" x="100" y="532" width="260" height="252" rx="20" fill="#f5e8df" stroke="#cc916a"/>
+    <text class="name" x="130" y="619">Claude Code</text>
+    <text class="body" x="130" y="656">에디터 제어 요청</text>
+    <text class="note" x="130" y="692">MCP를 통해 실행</text>
+    <path class="line" d="M360 582 H489"/>
+    <path class="line dashed" d="M360 718 H489"/>
+
+    <rect class="box" x="490" y="532" width="400" height="100" rx="20" fill="#f0ecf7" stroke="#9680c1"/>
+    <text class="name" x="522" y="572">Unity CLI MCP</text>
+    <text class="body" x="522" y="604">주 제어 경로 · 메인으로 사용</text>
+    <path class="line" d="M890 582 H1039"/>
+    <text class="label" x="965" y="565">주 제어 경로</text>
+
+    <rect class="box" x="490" y="652" width="400" height="132" rx="20" fill="#f0ecf7" stroke="#9680c1"/>
+    <text class="name" x="522" y="690"><tspan x="522">Unity Assistant</tspan><tspan x="522" dy="29">Package MCP</tspan></text>
+    <text class="body" x="522" y="756">보조 에디터 접근 · 필요할 때 사용</text>
+    <path class="line dashed" d="M890 718 H1039"/>
+    <text class="label" x="965" y="701">보조 제어 경로</text>
+
+    <rect class="box" x="1040" y="532" width="300" height="252" rx="20" fill="#e9f3e9" stroke="#77a680"/>
+    <text class="name" x="1070" y="619">Unity Editor</text>
+    <text class="body" x="1070" y="656">씬 / 콘솔 / 오브젝트</text>
+    <text class="note" x="1070" y="692">XR 프로젝트 작업 환경</text>
+  </g>
+
+  <path d="M100 819 H1340" stroke="#e9ebe8"/>
+  <g id="modeling-flow">
+    <text class="heading" x="100" y="861">3D 모델링 흐름</text>
+    <text class="note" x="330" y="861">코드 리뷰와 별도 프로세스로 실행</text>
+    <rect class="box" x="100" y="891" width="280" height="100" rx="20" fill="#e8eef8" stroke="#7193d3"/>
+    <text class="name" x="130" y="932">Codex</text>
+    <text class="note" x="130" y="964">모델링 작업 지시</text>
+    <path class="line" d="M380 941 H449"/>
+
+    <rect class="box" x="450" y="891" width="250" height="100" rx="20" fill="#faebdb" stroke="#d99649"/>
+    <text class="name" x="480" y="932">Blender</text>
+    <text class="note" x="480" y="964">모델 생성 / 결과물 전달</text>
+    <path class="line" d="M700 941 H769"/>
+
+    <rect class="box" x="770" y="891" width="250" height="100" rx="20" fill="#e8eef8" stroke="#7193d3"/>
+    <text class="name" x="800" y="932">Codex</text>
+    <text class="note" x="800" y="964">Unity에서 FBX 임포트</text>
+    <path class="line" d="M1020 941 H1089"/>
+
+    <rect class="box" x="1090" y="891" width="250" height="100" rx="20" fill="#f1f2f0" stroke="#949994"/>
+    <text class="name" x="1120" y="932">Unity</text>
+    <text class="note" x="1120" y="964">FBX 에셋 임포트 완료</text>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import {pages,urlFor,plain} from '../lib/content';
+---
+<Layout title="전체 문서 · 변고경"><section class="section archive-page"><h1>전체 문서<span class="sup">{pages.length}</span></h1><input class="archive-search" type="search" id="archive-search" placeholder="제목, 본문 검색" aria-label="문서 검색"/><div class="archive-list">{pages.map(p=><a href={urlFor(p.id)} data-document data-search={`${p.title} ${plain(p.content)}`.toLowerCase()}><div><h2>{plain(p.title)}</h2><span>{p.parent?plain(pages.find(x=>x.url===p.parent)?.title||'개인 프로젝트'):'포트폴리오'}</span></div></a>)}</div><p id="archive-empty" hidden>검색 결과가 없습니다.</p></section></Layout>
+<script>
+  const input=document.querySelector<HTMLInputElement>('#archive-search')!;const rows=[...document.querySelectorAll<HTMLElement>('[data-document]')];input.addEventListener('input',()=>{let n=0;const q=input.value.trim().toLowerCase();rows.forEach(r=>{r.hidden=!r.dataset.search?.includes(q);if(!r.hidden)n++;});document.querySelector<HTMLElement>('#archive-empty')!.hidden=n>0;});
+</script>

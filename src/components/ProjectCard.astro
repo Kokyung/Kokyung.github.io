@@ -1,0 +1,11 @@
+---
+import pageMedia from '../data/page-media.json';
+const {project:p,featured=false}=Astro.props;
+const thumbnail = p.image || pageMedia[p.id as keyof typeof pageMedia]?.['icon'];
+---
+<article class:list={['project-card',{featured}]} data-category={p.category} data-search={`${p.title} ${p.subtitle??''} ${p.tags.join(' ')} ${p.summary}`.toLowerCase()}>
+  <a class="project-image" href={`/work/${p.slug}/`} aria-label={`${p.title} 보기`}>
+    {thumbnail&&<img src={thumbnail} alt={p.title} loading="lazy" decoding="async"/>}
+  </a>
+  <div class="project-info"><div class="project-meta"><span>{p.discipline}</span><span>{p.year}</span></div><h3><a href={`/work/${p.slug}/`}>{p.title}</a></h3><p>{p.summary}</p><ul class="tags">{p.tags.map((t:string)=><li>{t}</li>)}</ul></div>
+</article>
