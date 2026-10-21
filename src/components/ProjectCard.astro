@@ -2,7 +2,7 @@
 import pageMedia from '../data/page-media.json';
 const {project:p,featured=false,hidden=false}=Astro.props;
 const thumbnail = p.image || pageMedia[p.id as keyof typeof pageMedia]?.['icon'];
-const TAG_LIMIT=5;
+const TAG_LIMIT=10;
 // Collapse only when it hides at least two tags.
 const hiddenTags=p.tags.length>TAG_LIMIT+1?p.tags.length-TAG_LIMIT:0;
 ---
