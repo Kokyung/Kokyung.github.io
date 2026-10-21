@@ -18,6 +18,8 @@ export const mediaPath = (ref: string) => {
 };
 const md = new MarkdownIt({ html: true, linkify: true, breaks: false }).disable('code');
 const escape = (s: string) => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+// Heading text is taken from rendered HTML, so undo its entities before Astro escapes it again.
+const unescapeHtml = (s: string) => s.replace(/&(amp|lt|gt|quot|#39);/g,(_,e)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"} as Record<string,string>)[e]);
 const safeUrl = (s: string) => /^(https?:\/\/|\/[^/]|mailto:|tel:|#)/.test(s) ? s : '#';
 
 export function renderContent(source: string) {
@@ -65,6 +67,6 @@ export function renderContent(source: string) {
     transformTags:{a:(tagName,attribs)=>({tagName,attribs:{...attribs,...(attribs.target==='_blank'?{rel:'noopener noreferrer'}:{})}})}
   });
   const headings:{id:string;text:string;level:number}[]=[];
-  html=html.replace(/<h([2-4])>([\s\S]*?)<\/h\1>/g,(_,level,text)=>{const id=`section-${headings.length+1}`;headings.push({id,text:plain(text),level:Number(level)});return `<h${level} id="${id}">${text}</h${level}>`;});
+  html=html.replace(/<h([2-4])>([\s\S]*?)<\/h\1>/g,(_,level,text)=>{const id=`section-${headings.length+1}`;headings.push({id,text:unescapeHtml(plain(text)),level:Number(level)});return `<h${level} id="${id}">${text}</h${level}>`;});
   return {html,headings};
 }

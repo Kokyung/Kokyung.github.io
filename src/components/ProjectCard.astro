@@ -1,12 +1,12 @@
 ---
 import pageMedia from '../data/page-media.json';
-const {project:p,featured=false}=Astro.props;
+const {project:p,featured=false,hidden=false}=Astro.props;
 const thumbnail = p.image || pageMedia[p.id as keyof typeof pageMedia]?.['icon'];
 const TAG_LIMIT=5;
 // Collapse only when it hides at least two tags.
 const hiddenTags=p.tags.length>TAG_LIMIT+1?p.tags.length-TAG_LIMIT:0;
 ---
-<article class:list={['project-card',{featured}]} data-tags={p.tags.join('|')} data-search={`${p.title} ${p.subtitle??''} ${p.tags.join(' ')} ${p.summary}`.toLowerCase()}>
+<article class:list={['project-card',{featured}]} hidden={hidden} data-tags={p.tags.join('|')} data-search={`${p.title} ${p.subtitle??''} ${p.tags.join(' ')} ${p.summary}`.toLowerCase()}>
   <a class="project-image" href={`/work/${p.slug}/`} aria-label={`${p.title} 보기`}>
     {thumbnail&&<img src={thumbnail} alt={p.title} loading="lazy" decoding="async"/>}
   </a>
