@@ -134,6 +134,16 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .strip-title small { display: block; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); }
 .hero-strip.is-active .strip-title { opacity: 1; transform: none; transition-delay: .5s; }
+/* Phone layout: box that appears where the middle of the picture is tapped. */
+.strip-cta {
+  position: absolute; z-index: 3; padding: 12px 18px; border-color: rgba(127, 231, 255, .55);
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap;
+  animation: cta-in .15s ease-out;
+}
+.strip-cta[hidden] { display: none; }
+@keyframes cta-in { from { opacity: 0; transform: scale(.9); } }
+.strip-cta.is-leaving { animation: cta-out .12s ease-in forwards; pointer-events: none; }
+@keyframes cta-out { to { opacity: 0; transform: scale(.9); } }
 /* Story-style progress bar, shown on phones only. */
 .hero-progress { display: none; }
 .hero-progress span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .25); overflow: hidden; }
@@ -454,6 +464,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   }
   .hero-strip { position: absolute; inset: 0; opacity: 0; pointer-events: none; animation: none; box-shadow: none; transition: opacity .8s; }
   .hero-strip.is-active { opacity: 1; pointer-events: auto; box-shadow: none; }
+  /* While the cycle is held the clip is paused; stop the slow drift too, or the still frame appears to shake. */
+  .hero.is-held .hero-strip img, .hero.is-held .hero-strip video { animation-play-state: paused; }
   /* The NOW SHOWING panel names the project. */
   .strip-title { display: none; }
   .hero-progress { display: flex; position: absolute; z-index: 2; top: 72px; left: 16px; right: 16px; gap: 4px; }

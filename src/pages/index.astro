@@ -22,6 +22,7 @@ const PAGE_SIZE=9;
   <nav class="side-nav" aria-label="섹션 이동"><a href="#top" data-section="top"><span>홈</span></a><a href="#work" data-section="work"><span>프로젝트</span></a><a href="#about" data-section="about"><span>경력</span></a><a href="#contact" data-section="contact"><span>CONTACT</span></a></nav>
   <section class="hero" id="top">
     <div class="hero-strips">{strips.map((s,i)=><a class:list={["hero-strip",{"is-active":i===firstActive}]} href={`/work/${s.slug}/`} tabindex="-1" aria-hidden="true" style={`--i:${i}`} data-title={s.title} data-meta={`${s.discipline} · ${s.year}`} data-summary={s.summary}>{s.clip?<video src={`/media/strip-${s.clip}.mp4`} poster={`/media/strip-${s.clip}.jpg`} muted loop playsinline preload="none"/>:<img src={s.src} alt="" fetchpriority={i<4?"high":"auto"}/>}<span class="strip-label"><span class="strip-title glass">{s.title}<small>{s.discipline} · {s.year}</small></span></span></a>)}</div>
+    <a class="strip-cta glass" href={`/work/${spotlight.slug}/`} hidden>프로젝트 확인</a>
     <div class="hero-progress" aria-hidden="true">{strips.map(()=><span/>)}</div>
     <div class="hero-intro"><h1>Unity XR 프로그래머<br/>변고경입니다.</h1><p class="hero-description">XR, 메타버스, 실시간 버추얼 캐릭터 시스템 개발 경험과 AI 에이전트 활용 역량을 두루 갖춘 경력자입니다.</p><div class="hero-actions"><a class="button primary" href="#work">프로젝트 보기</a><a class="button" href="/work/about/">자기소개</a></div></div>
     <a class="hero-spot glass" href={`/work/${spotlight.slug}/`}><div class="spot-label"><span class="spot-live">NOW SHOWING</span><span class="spot-meta">{spotlight.discipline} · {spotlight.year}</span></div><div class="spot-body"><h2>{spotlight.title}</h2><p>{spotlight.summary}</p></div></a>
@@ -54,6 +55,7 @@ const PAGE_SIZE=9;
   hero.style.setProperty('--cycle',`${CYCLE}ms`);
   const strips=[...document.querySelectorAll<HTMLAnchorElement>('.hero-strip')];
   const segments=[...document.querySelectorAll<HTMLElement>('.hero-progress span')];
+  const stackedLayout=matchMedia('(max-width: 760px)');
   const spot=document.querySelector<HTMLAnchorElement>('.hero-spot')!;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let activeStrip=Math.max(0,strips.findIndex(s=>s.classList.contains('is-active')));
@@ -66,26 +68,45 @@ const PAGE_SIZE=9;
   // Only the active strip's clip plays, from the start; reduced motion keeps the still frame.
   const clipsAllowed=!reducedMotion;
   function playClip(){strips.forEach((s,j)=>{const v=s.querySelector('video');if(!v)return;if(j===activeStrip&&clipsAllowed){v.currentTime=0;v.play().catch(()=>{});}else v.pause();});}
-  const stopStrips=()=>{clearInterval(stripTimer);hero.classList.add('is-held');};
-  const startStrips=()=>{stopStrips();if(reducedMotion)return;hero.classList.remove('is-held');renderProgress();stripTimer=setInterval(()=>showStrip((activeStrip+1)%strips.length),CYCLE);};
-  // Hold the cycle while the pointer or keyboard focus is in the hero, so a focused link keeps its project.
-  let pointerInHero=false;
+  // In the phone layout a held cycle also pauses the clip, matching the stopped progress bar; it plays on when the cycle resumes.
+  const activeClip=()=>strips[activeStrip].querySelector('video');
+  const stopStrips=()=>{clearInterval(stripTimer);hero.classList.add('is-held');if(stackedLayout.matches)activeClip()?.pause();};
+  const startStrips=()=>{stopStrips();if(reducedMotion)return;hero.classList.remove('is-held');renderProgress();if(clipsAllowed)activeClip()?.play().catch(()=>{});stripTimer=setInterval(()=>showStrip((activeStrip+1)%strips.length),CYCLE);};
+  // Hold the cycle while the pointer, keyboard focus or the phone tap box is in the hero, so a focused link keeps its project.
+  let pointerInHero=false,keyboardInHero=false,ctaOpen=false;
   // Mouse only: a tap on a touch screen should not stop the cycle or switch strips.
   strips.forEach((s,i)=>s.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')showStrip(i);}));
-  const heroHeld=()=>pointerInHero||hero.contains(document.activeElement);
+  const heroHeld=()=>pointerInHero||keyboardInHero||ctaOpen;
   // Hovering holds the cycle only in the strip layout; the stacked phone layout fills the screen, so a mouse is always over it.
-  const stackedLayout=matchMedia('(max-width: 760px)');
   const releasePointer=()=>{if(!pointerInHero)return;pointerInHero=false;if(!heroHeld())startStrips();};
   hero.addEventListener('pointerenter',e=>{if(e.pointerType!=='mouse'||stackedLayout.matches)return;pointerInHero=true;stopStrips();});
   hero.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')releasePointer();});
-  stackedLayout.addEventListener('change',()=>{if(stackedLayout.matches)releasePointer();else if(hero.matches(':hover')){pointerInHero=true;stopStrips();}});
-  // Swipe left/right to change project; a swipe must not also open the strip under the finger.
+  stackedLayout.addEventListener('change',()=>{if(stackedLayout.matches)releasePointer();else{hideCta();if(hero.matches(':hover')){pointerInHero=true;stopStrips();}}});
+  // Phone layout: tapping the left or right third of the picture goes back or forward; tapping the middle opens
+  // a "프로젝트 확인" box at the tap point, and tapping the box opens the project. While the box is open, any other
+  // tap just closes it.
+  const cta=document.querySelector<HTMLAnchorElement>('.strip-cta')!;
+  // The box fades out like it fades in, then hides (at once under reduced motion, where no animation runs).
+  function fadeOutCta(){if(cta.hidden)return;if(reducedMotion)cta.hidden=true;else cta.classList.add('is-leaving');}
+  cta.addEventListener('animationend',e=>{if(e.animationName!=='cta-out')return;cta.classList.remove('is-leaving');cta.hidden=true;});
+  function hideCta(){if(!ctaOpen)return;ctaOpen=false;fadeOutCta();if(!heroHeld())startStrips();}
+  function showCta(x:number,y:number){cta.setAttribute('href',strips[activeStrip].getAttribute('href')!);cta.classList.remove('is-leaving');cta.hidden=false;ctaOpen=true;stopStrips();
+    const r=hero.getBoundingClientRect(),w=cta.offsetWidth,h=cta.offsetHeight;cta.style.left=`${Math.min(Math.max(x-w/2,12),r.width-w-12)}px`;cta.style.top=`${Math.min(Math.max(y-h/2,12),r.height-h-12)}px`;}
+  const step=(d:number)=>{ctaOpen=false;fadeOutCta();showStrip((activeStrip+d+strips.length)%strips.length);if(!heroHeld())startStrips();};
+  // Swipe left/right to change project; a swipe must not also count as a tap.
   let touchX=0,touchY=0,swiped=false;
   hero.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;swiped=false;},{passive:true});
-  hero.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;swiped=true;showStrip((activeStrip+(dx<0?1:-1)+strips.length)%strips.length);if(!heroHeld())startStrips();});
-  hero.addEventListener('click',e=>{if(swiped){e.preventDefault();swiped=false;}},true);
-  hero.addEventListener('focusin',stopStrips);
-  hero.addEventListener('focusout',e=>{if(!pointerInHero&&!hero.contains(e.relatedTarget as Node|null))startStrips();});
+  hero.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;swiped=true;step(dx<0?1:-1);});
+  hero.addEventListener('click',e=>{if(swiped){e.preventDefault();swiped=false;return;}
+    if(!stackedLayout.matches||cta.contains(e.target as Node))return;
+    const onStrip=!!(e.target as Element).closest('.hero-strip');if(onStrip)e.preventDefault();
+    if(ctaOpen||!onStrip){hideCta();return;}
+    const r=hero.getBoundingClientRect(),x=e.clientX-r.left;
+    if(x<r.width/3)step(-1);else if(x>r.width*2/3)step(1);else showCta(x,e.clientY-r.top);},true);
+  document.addEventListener('click',e=>{if(ctaOpen&&!hero.contains(e.target as Node))hideCta();});
+  // Keyboard focus holds the cycle; focus left behind by a tap or click does not.
+  hero.addEventListener('focusin',()=>{if(!hero.querySelector(':focus-visible'))return;keyboardInHero=true;stopStrips();});
+  hero.addEventListener('focusout',e=>{if(!keyboardInHero||hero.contains(e.relatedTarget as Node|null))return;keyboardInHero=false;if(!heroHeld())startStrips();});
   document.addEventListener('visibilitychange',()=>document.hidden||heroHeld()?stopStrips():startStrips());
   playClip();renderProgress();startStrips();
   // Side nav: mark the section currently in view (the last one whose top has passed 40% of the screen).
