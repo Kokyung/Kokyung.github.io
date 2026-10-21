@@ -7,7 +7,7 @@ const spotlight=projects.find(p=>p.slug==='xr-ai-pipeline')!;
 // Slanted image strips behind the hero: the newest projects, using the same thumbnail as their cards.
 const STRIP_COUNT=6;
 // Some strips play a short muted clip (public/media/strip-<name>.mp4, with its first frame as the still).
-const STRIP_CLIPS:Record<string,string>={'xr-ai-pipeline':'xr','mr-wand':'mr-wand','fps-project':'fps'};
+const STRIP_CLIPS:Record<string,string>={'xr-ai-pipeline':'xr','mr-wand':'mr-wand','elstar-2':'elstar','fps-project':'fps'};
 const strips=projects.map(p=>({...p,src:p.image||pageMedia[p.id as keyof typeof pageMedia]?.['icon'],clip:STRIP_CLIPS[p.slug]})).filter(s=>s.src).slice(0,STRIP_COUNT);
 // The featured project's strip starts out highlighted.
 const firstActive=Math.max(0,strips.findIndex(s=>s.slug===spotlight.slug));
