@@ -134,6 +134,14 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .strip-title small { display: block; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); }
 .hero-strip.is-active .strip-title { opacity: 1; transform: none; transition-delay: .5s; }
+/* Story-style progress bar, shown on phones only. */
+.hero-progress { display: none; }
+.hero-progress span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .25); overflow: hidden; }
+.hero-progress span::after { content: ''; display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
+.hero-progress .is-done::after { transform: none; }
+.hero-progress .is-active::after { animation: progress-fill var(--cycle) linear forwards; }
+.hero.is-held .hero-progress .is-active::after { animation-play-state: paused; }
+@keyframes progress-fill { to { transform: none; } }
 .hero-strip img, .hero-strip video {
   position: absolute; top: 0; left: 50%; height: 100%; width: calc(100% + 4 * var(--skew-shift) + 60px); max-width: none;
   object-fit: cover; transform: translateX(-50%) skewX(var(--strip-skew));
@@ -430,14 +438,25 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   .main-nav { padding: 4px; border-radius: 16px; }
   .main-nav a { padding: 8px 11px; font-size: 12px; border-radius: 12px; }
   .main-nav .nav-contact { display: none; }
-  .hero { --hero-h: 760px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 14px; padding: 0 16px 32px; }
+  /* pan-y (plus pinch-zoom for magnification): horizontal swipes change the project instead of triggering browser back/forward. */
+  .hero { --hero-h: 760px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 14px; padding: 0 16px 32px; touch-action: pan-y pinch-zoom; }
   .hero-intro { padding: 0 4px; }
   .hero h1 { font-size: 30px; }
   .hero-description { font-size: 14px; }
   .hero-spot { width: auto; padding: 14px 16px; }
   .hero-spot p { display: none; }
-  /* Strips are too narrow for titles on phones; the NOW SHOWING panel names the project. */
+  /* Phones: the strips stack into one full-width project at a time that crossfades, like stories.
+     They fill the upper part of the hero so square clips keep most of their width; the text sits below. */
+  .hero-strips {
+    bottom: 30%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
+  }
+  .hero-strip { position: absolute; inset: 0; opacity: 0; pointer-events: none; animation: none; box-shadow: none; transition: opacity .8s; }
+  .hero-strip.is-active { opacity: 1; pointer-events: auto; box-shadow: none; }
+  /* The NOW SHOWING panel names the project. */
   .strip-title { display: none; }
+  .hero-progress { display: flex; position: absolute; z-index: 2; top: 72px; left: 16px; right: 16px; gap: 4px; }
   .section { padding: 70px 16px 0; }
   .section-heading h2 { font-size: 28px; }
   .filter-bar { flex-direction: column; align-items: stretch; border-radius: 18px; }
@@ -474,6 +493,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) {
   :root { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
+  .hero-progress .is-active::after { transform: none; }
 }
 
 @media print {

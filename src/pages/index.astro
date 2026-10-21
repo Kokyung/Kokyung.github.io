@@ -22,6 +22,7 @@ const PAGE_SIZE=9;
   <nav class="side-nav" aria-label="섹션 이동"><a href="#top" data-section="top"><span>홈</span></a><a href="#work" data-section="work"><span>프로젝트</span></a><a href="#about" data-section="about"><span>경력</span></a><a href="#contact" data-section="contact"><span>CONTACT</span></a></nav>
   <section class="hero" id="top">
     <div class="hero-strips">{strips.map((s,i)=><a class:list={["hero-strip",{"is-active":i===firstActive}]} href={`/work/${s.slug}/`} tabindex="-1" aria-hidden="true" style={`--i:${i}`} data-title={s.title} data-meta={`${s.discipline} · ${s.year}`} data-summary={s.summary}>{s.clip?<video src={`/media/strip-${s.clip}.mp4`} poster={`/media/strip-${s.clip}.jpg`} muted loop playsinline preload="none"/>:<img src={s.src} alt="" fetchpriority={i<4?"high":"auto"}/>}<span class="strip-label"><span class="strip-title glass">{s.title}<small>{s.discipline} · {s.year}</small></span></span></a>)}</div>
+    <div class="hero-progress" aria-hidden="true">{strips.map(()=><span/>)}</div>
     <div class="hero-intro"><h1>Unity XR 프로그래머<br/>변고경입니다.</h1><p class="hero-description">XR, 메타버스, 실시간 버추얼 캐릭터 시스템 개발 경험과 AI 에이전트 활용 역량을 두루 갖춘 경력자입니다.</p><div class="hero-actions"><a class="button primary" href="#work">프로젝트 보기</a><a class="button" href="/work/about/">자기소개</a></div></div>
     <a class="hero-spot glass" href={`/work/${spotlight.slug}/`}><div class="spot-label"><span class="spot-live">NOW SHOWING</span><span class="spot-meta">{spotlight.discipline} · {spotlight.year}</span></div><div class="spot-body"><h2>{spotlight.title}</h2><p>{spotlight.summary}</p></div></a>
   </section>
@@ -47,30 +48,46 @@ const PAGE_SIZE=9;
   render();
   // Hero strips: highlight one strip at a time and show its project in the NOW SHOWING panel;
   // the cycle pauses while the pointer is over the hero, and hovering a strip takes over.
+  // On phones the strips stack into one full-width project at a time with a story-style progress bar and swipe.
+  const CYCLE=3200;
+  const hero=document.querySelector<HTMLElement>('.hero')!;
+  hero.style.setProperty('--cycle',`${CYCLE}ms`);
   const strips=[...document.querySelectorAll<HTMLAnchorElement>('.hero-strip')];
+  const segments=[...document.querySelectorAll<HTMLElement>('.hero-progress span')];
   const spot=document.querySelector<HTMLAnchorElement>('.hero-spot')!;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let activeStrip=Math.max(0,strips.findIndex(s=>s.classList.contains('is-active')));
   let stripTimer:number|undefined;
   const showStrip=(i:number)=>{if(i===activeStrip)return;activeStrip=i;strips.forEach((s,j)=>s.classList.toggle('is-active',j===i));
     const {title,meta,summary}=strips[i].dataset;spot.setAttribute('href',strips[i].getAttribute('href')!);spot.querySelector('.spot-meta')!.textContent=meta!;spot.querySelector('h2')!.textContent=title!;spot.querySelector('.spot-body p')!.textContent=summary!;
-    if(!reducedMotion)spot.querySelector('.spot-body')!.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:450,easing:'ease-out'});playClip();};
-  // Only the active strip's clip plays, from the start; phones and reduced motion keep the still frame.
-  const clipsAllowed=!reducedMotion&&!matchMedia('(max-width: 760px)').matches;
+    if(!reducedMotion)spot.querySelector('.spot-body')!.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:450,easing:'ease-out'});playClip();renderProgress();};
+  // Segments before the active one are full; the active one fills over one cycle (restarted on every change).
+  function renderProgress(){segments.forEach((s,j)=>{s.classList.toggle('is-done',j<activeStrip);s.classList.remove('is-active');});void hero.offsetWidth;segments[activeStrip].classList.add('is-active');}
+  // Only the active strip's clip plays, from the start; reduced motion keeps the still frame.
+  const clipsAllowed=!reducedMotion;
   function playClip(){strips.forEach((s,j)=>{const v=s.querySelector('video');if(!v)return;if(j===activeStrip&&clipsAllowed){v.currentTime=0;v.play().catch(()=>{});}else v.pause();});}
-  const stopStrips=()=>clearInterval(stripTimer);
-  const startStrips=()=>{stopStrips();if(reducedMotion)return;stripTimer=setInterval(()=>showStrip((activeStrip+1)%strips.length),3200);};
+  const stopStrips=()=>{clearInterval(stripTimer);hero.classList.add('is-held');};
+  const startStrips=()=>{stopStrips();if(reducedMotion)return;hero.classList.remove('is-held');renderProgress();stripTimer=setInterval(()=>showStrip((activeStrip+1)%strips.length),CYCLE);};
   // Hold the cycle while the pointer or keyboard focus is in the hero, so a focused link keeps its project.
   let pointerInHero=false;
-  strips.forEach((s,i)=>s.addEventListener('mouseenter',()=>showStrip(i)));
-  const hero=document.querySelector<HTMLElement>('.hero')!;
+  // Mouse only: a tap on a touch screen should not stop the cycle or switch strips.
+  strips.forEach((s,i)=>s.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')showStrip(i);}));
   const heroHeld=()=>pointerInHero||hero.contains(document.activeElement);
-  hero.addEventListener('mouseenter',()=>{pointerInHero=true;stopStrips();});
-  hero.addEventListener('mouseleave',()=>{pointerInHero=false;if(!heroHeld())startStrips();});
+  // Hovering holds the cycle only in the strip layout; the stacked phone layout fills the screen, so a mouse is always over it.
+  const stackedLayout=matchMedia('(max-width: 760px)');
+  const releasePointer=()=>{if(!pointerInHero)return;pointerInHero=false;if(!heroHeld())startStrips();};
+  hero.addEventListener('pointerenter',e=>{if(e.pointerType!=='mouse'||stackedLayout.matches)return;pointerInHero=true;stopStrips();});
+  hero.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')releasePointer();});
+  stackedLayout.addEventListener('change',()=>{if(stackedLayout.matches)releasePointer();else if(hero.matches(':hover')){pointerInHero=true;stopStrips();}});
+  // Swipe left/right to change project; a swipe must not also open the strip under the finger.
+  let touchX=0,touchY=0,swiped=false;
+  hero.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;swiped=false;},{passive:true});
+  hero.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;swiped=true;showStrip((activeStrip+(dx<0?1:-1)+strips.length)%strips.length);if(!heroHeld())startStrips();});
+  hero.addEventListener('click',e=>{if(swiped){e.preventDefault();swiped=false;}},true);
   hero.addEventListener('focusin',stopStrips);
   hero.addEventListener('focusout',e=>{if(!pointerInHero&&!hero.contains(e.relatedTarget as Node|null))startStrips();});
   document.addEventListener('visibilitychange',()=>document.hidden||heroHeld()?stopStrips():startStrips());
-  playClip();startStrips();
+  playClip();renderProgress();startStrips();
   // Side nav: mark the section currently in view (the last one whose top has passed 40% of the screen).
   const sideLinks=[...document.querySelectorAll<HTMLAnchorElement>('.side-nav a')];
   const sections=sideLinks.map(a=>document.getElementById(a.dataset.section!)!);
