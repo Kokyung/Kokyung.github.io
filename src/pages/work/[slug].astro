@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import {pages,urlFor,idOf,renderContent,plain} from '../../lib/content';
 import {projects,categories} from '../../data/projects';
+import pageMedia from '../../data/page-media.json';
 export function getStaticPaths(){return pages.map(page=>({params:{slug:page.slug},props:{page}}));}
 const {page}=Astro.props;
 const project=projects.find(p=>p.id===page.id);
@@ -9,11 +10,11 @@ const {html,headings}=renderContent(page.content);
 const parents=[];let parent=pages.find(p=>p.id===idOf(page.parent||''));let seen=new Set();while(parent&&!seen.has(parent.id)){parents.unshift(parent);seen.add(parent.id);parent=pages.find(p=>p.id===idOf(parent.parent||''));}
 const children=pages.filter(p=>p.parent&&idOf(p.parent)===page.id);
 const title=project?.title||plain(page.title);
+// Blurred backdrop for the title area: the project thumbnail, else the page's Notion icon.
+const heroImage=project?.image||pageMedia[page.id as keyof typeof pageMedia]?.['icon'];
 const toc=headings.length?headings.map(h=>({href:`#${h.id}`,text:h.text,indent:h.level===4})):children.map(p=>({href:urlFor(p.id),text:plain(p.title),indent:false}));
 ---
 <Layout title={`${title} · 변고경`} description={project?.summary||title}>
-  <div class="detail-shell"><nav class="breadcrumbs" aria-label="문서 경로"><a href="/">홈</a>{parents.map(p=><><span>/</span><a href={urlFor(p.id)}>{p.id==='2d5c0c7fed3880d19ad0d50afc5f7f54'?'포트폴리오':plain(p.title)}</a></>)}<span>/</span><span aria-current="page">{title}</span></nav>
-  <header class="detail-header">{project&&<p class="eyebrow">{project.discipline} <span> / {project.date}</span></p>}<h1>{title}</h1>{project&&<>{project.subtitle&&<p class="detail-subtitle">{project.subtitle}</p>}<ul class="tags">{project.tags.map(t=><li>{t}</li>)}<li>{categories.find(c=>c.id===project.category)?.label}</li></ul></>}</header>
+  <div class:list={["detail-hero",{"has-image":heroImage}]}>{heroImage&&<div class="detail-hero-bg" style={`background-image:url(${heroImage})`}></div>}<div class="detail-hero-in"><nav class="breadcrumbs" aria-label="문서 경로"><a href="/">홈</a>{parents.map(p=><><span>/</span><a href={urlFor(p.id)}>{p.id==='2d5c0c7fed3880d19ad0d50afc5f7f54'?'포트폴리오':plain(p.title)}</a></>)}<span>/</span><span aria-current="page">{title}</span></nav>{project&&<p class="eyebrow">{project.discipline} <span>· {project.date}</span></p>}<h1>{title}</h1>{project&&<>{project.subtitle&&<p class="detail-subtitle">{project.subtitle}</p>}<ul class="tags">{project.tags.map(t=><li>{t}</li>)}<li>{categories.find(c=>c.id===project.category)?.label}</li></ul></>}</div></div>
   <div class:list={['detail-grid',{'no-toc':!toc.length}]}>{toc.length>0&&<aside class="document-nav"><details open><summary>목차</summary><nav aria-label="목차">{toc.map(t=><a class:list={[{indent:t.indent}]} href={t.href}>{t.text}</a>)}</nav></details></aside>}<article class="prose" id="article-body" data-source-id={page.id} set:html={html}/></div>
-  </div>
 </Layout>

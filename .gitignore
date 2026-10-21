@@ -5,3 +5,13 @@ dist/
 .env
 *.log
 .openai/
+.ai/
+AGENTS.md
+ASTRA.md
+CLAUDE.md
+GEMINI.md
+PROJECT.md
+TASK.md
+.claude/
+.openai/
+.ai/
