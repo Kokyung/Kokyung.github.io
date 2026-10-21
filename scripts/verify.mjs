@@ -18,7 +18,7 @@ const decode=s=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"
 for(const f of htmlFiles.filter(f=>f.includes(`${path.sep}work${path.sep}`))){
   const h=await fs.readFile(f,'utf8');const id=h.match(/data-source-id="([^"]+)"/)?.[1];const source=raw.find(p=>p.id===id);assert(source,`${f}: source id missing`);
   const expected=[...source.content.matchAll(/^([ \t]*)```[^\n]*\n([\s\S]*?)^\1```/gm)].map(m=>m[2].split('\n').map(l=>l.startsWith(m[1])?l.slice(m[1].length):l).join('\n').trim());
-  const actual=[...h.matchAll(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g)].map(m=>decode(m[1]).trim());assert.deepEqual(actual,expected,`${f}: code text changed`);
+  const actual=[...h.matchAll(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g)].map(m=>decode(m[1].replace(/<\/?span[^>]*>/g,'')).trim());assert.deepEqual(actual,expected,`${f}: code text changed`);
 }
 for(const p of raw){for(const m of p.content.matchAll(/<(?:page|mention) url="([^"]+)"/g)){const id=m[1].split('/').pop().replaceAll('-','');assert(raw.some(p=>p.id===id),`Unfetched descendant: ${m[1]}`);}}
 for(const f of files.filter(f=>f.includes(`${path.sep}media${path.sep}`))){assert((await fs.stat(f)).size<25*1024*1024,`${f}: exceeds static asset size budget`);}

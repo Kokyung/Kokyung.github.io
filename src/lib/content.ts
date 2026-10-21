@@ -3,6 +3,7 @@ import { projects, extraSlugs } from '../data/projects';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
 import resolvedLinks from '../data/resolved-links.json';
+import { createHighlighter } from 'shiki';
 
 export const idOf = (url: string) => url.split(/[?#]/)[0].split('/').pop()!.replaceAll('-','');
 export const plain = (value: string) => value.replace(/<[^>]*>/g,'').replace(/\\([~.[\]*])/g,'$1').trim();
@@ -21,12 +22,22 @@ const escape = (s: string) => s.replaceAll('&','&amp;').replaceAll('<','&lt;').r
 // Heading text is taken from rendered HTML, so undo its entities before Astro escapes it again.
 const unescapeHtml = (s: string) => s.replace(/&(amp|lt|gt|quot|#39);/g,(_,e)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"} as Record<string,string>)[e]);
 const safeUrl = (s: string) => /^(https?:\/\/|\/[^/]|mailto:|tel:|#)/.test(s) ? s : '#';
+// Syntax colors for code blocks; the block background stays the site's own.
+const highlighter = await createHighlighter({ themes: ['dark-plus'], langs: ['csharp', 'markdown'] });
+const LANGS: Record<string,string> = { cs: 'csharp', csharp: 'csharp', 'c#': 'csharp', markdown: 'markdown', md: 'markdown' };
+const highlight = (code: string, lang: string) => {
+  const id = LANGS[lang.toLowerCase()];
+  if (!id) return escape(code);
+  return highlighter.codeToTokensBase(code, { lang: id, theme: 'dark-plus' })
+    .map(line => line.map(t => `<span style="color:${t.color}${t.fontStyle && t.fontStyle & 1 ? ';font-style:italic' : ''}">${escape(t.content)}</span>`).join(''))
+    .join('\n');
+};
 
 export function renderContent(source: string) {
   const slots: string[] = [];
   const slot = (html: string) => { const i=slots.push(html)-1; return `\n\n<div data-migration-slot="${i}"></div>\n\n`; };
   // Protect source code before translating Notion markup, including indented fences.
-  let s = source.replace(/^([ \t]*)```([^\n]*)\n([\s\S]*?)^\1```/gm, (_,indent,lang,code) => slot(`<pre><code class="language-${escape(lang.trim())}">${escape(code.split('\n').map((l:string)=>l.startsWith(indent)?l.slice(indent.length):l).join('\n'))}</code></pre>`));
+  let s = source.replace(/^([ \t]*)```([^\n]*)\n([\s\S]*?)^\1```/gm, (_,indent,lang,code) => slot(`<pre><code class="language-${escape(lang.trim())}">${highlight(code.split('\n').map((l:string)=>l.startsWith(indent)?l.slice(indent.length):l).join('\n'),lang.trim())}</code></pre>`));
   s = s.replace(/<(image|video|bookmark|embed|file)\s+source="([^"]+)"[^>]*?(?:\/>|>([\s\S]*?)<\/\1>)/g, (_,tag,src,caption='') => {
     src=src.replaceAll('&amp;','&');
     const local=src.startsWith('notion-file-block://')?mediaPath(src):safeUrl(src);
@@ -61,9 +72,9 @@ export function renderContent(source: string) {
   html=html.replace(/<div data-migration-slot="(\d+)"><\/div>/g,(_,i)=>slots[Number(i)]);
   html=sanitizeHtml(html,{
     allowedTags:[...sanitizeHtml.defaults.allowedTags,'img','video','source','iframe','details','summary','figure','figcaption','aside','span'],
-    allowedAttributes:{...sanitizeHtml.defaults.allowedAttributes,'*':['class','id','aria-label','role','tabindex'],div:['style'],a:['href','target','rel'],img:['src','alt','loading','decoding'],video:['controls','playsinline','preload','poster','aria-label'],source:['src','type'],iframe:['src','title','loading','allow','allowfullscreen','referrerpolicy'],ol:['start'],td:['colspan','rowspan']},
+    allowedAttributes:{...sanitizeHtml.defaults.allowedAttributes,'*':['class','id','aria-label','role','tabindex'],div:['style'],span:['style'],a:['href','target','rel'],img:['src','alt','loading','decoding'],video:['controls','playsinline','preload','poster','aria-label'],source:['src','type'],iframe:['src','title','loading','allow','allowfullscreen','referrerpolicy'],ol:['start'],td:['colspan','rowspan']},
     allowedIframeHostnames:['www.youtube-nocookie.com'],
-    allowedStyles:{div:{flex:[/^[\d.]+ 1 0$/]}},
+    allowedStyles:{div:{flex:[/^[\d.]+ 1 0$/]},span:{color:[/^#[0-9a-f]{3,8}$/i],'font-style':[/^italic$/]}},
     transformTags:{a:(tagName,attribs)=>({tagName,attribs:{...attribs,...(attribs.target==='_blank'?{rel:'noopener noreferrer'}:{})}})}
   });
   const headings:{id:string;text:string;level:number}[]=[];
