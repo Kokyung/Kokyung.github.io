@@ -117,7 +117,7 @@ const PAGE_SIZE=9;
   // Side nav: mark the section currently in view (the last one whose top has passed 40% of the screen).
   const sideLinks=[...document.querySelectorAll<HTMLAnchorElement>('.side-nav a')];
   const sections=sideLinks.map(a=>document.getElementById(a.dataset.section!)!);
-  function spy(){const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-2;let current=0;sections.forEach((sec,i)=>{if(sec.getBoundingClientRect().top<=innerHeight*.4)current=i;});if(atBottom)current=sections.length-1;sideLinks.forEach((a,i)=>a.toggleAttribute('aria-current',i===current));}
+  function spy(){const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-2;let current=0;sections.forEach((sec,i)=>{if(sec.getBoundingClientRect().top<=innerHeight*.4)current=i;});if(atBottom)current=sections.length-1;sideLinks.forEach((a,i)=>i===current?a.setAttribute('aria-current','true'):a.removeAttribute('aria-current'));}
   addEventListener('scroll',spy,{passive:true});addEventListener('resize',spy);spy();
   buttons.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter!;filter();}));input.addEventListener('input',filter);
   document.querySelector('#reset-filters')?.addEventListener('click',()=>{category='all';input.value='';filter();});

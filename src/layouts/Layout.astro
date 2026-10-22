@@ -29,7 +29,7 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
       const links=[...nav.querySelectorAll<HTMLAnchorElement>('a')];
       const byHref=(href:string)=>links.find(a=>a.getAttribute('href')===href)??null;
       let current:HTMLAnchorElement|null=null;
-      function place(link:HTMLAnchorElement|null){current=link;links.forEach(a=>a.toggleAttribute('aria-current',a===link));indicator.classList.toggle('is-on',!!link);
+      function place(link:HTMLAnchorElement|null){current=link;links.forEach(a=>a===link?a.setAttribute('aria-current','true'):a.removeAttribute('aria-current'));indicator.classList.toggle('is-on',!!link);
         if(link)Object.assign(indicator.style,{width:`${link.offsetWidth}px`,height:`${link.offsetHeight}px`,transform:`translate(${link.offsetLeft}px,${link.offsetTop}px)`});}
       const path=location.pathname;
       const home=path==='/';
