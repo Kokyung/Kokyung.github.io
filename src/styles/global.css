@@ -15,7 +15,8 @@
   --paper-ink: #2a3138;
   --paper-line: #d9e0e5;
   --max: 1240px;
-  color-scheme: dark;
+  /* "only": the design is fixed, so browsers must not re-color it for their own dark/light modes. */
+  color-scheme: only dark;
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
 }
@@ -74,12 +75,25 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .brand-mark span { color: var(--accent); }
 .main-nav {
-  display: flex; gap: 4px; padding: 6px; border-radius: 20px;
+  position: relative; display: flex; gap: 4px; padding: 6px; border-radius: 20px;
   background: var(--glass-strong); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
-.main-nav a { padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 500; color: #cfd8e0; transition: background .2s, color .2s; }
-.main-nav a:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.main-nav a {
+  position: relative; z-index: 1; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 500; color: #cfd8e0;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Hover only where a real pointer hovers; on touch screens :hover sticks to the last tapped item and leaves a
+   second highlight behind. No color transition either, so the previous item does not linger. */
+@media (hover: hover) {
+  .main-nav a { transition: background .2s; }
+  .main-nav a:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+}
+.main-nav a[aria-current] { color: #fff; }
+/* Rounded highlight behind the current item; sized and moved by the layout script. */
+.nav-indicator { position: absolute; top: 0; left: 0; border-radius: 14px; background: rgba(255, 255, 255, .14); opacity: 0; pointer-events: none; }
+.nav-indicator.is-on { opacity: 1; }
+.main-nav.is-ready .nav-indicator { transition: opacity .25s; }
 .github-link {
   width: 46px; height: 46px; border-radius: 14px; display: grid; place-content: center;
   background: var(--glass-strong); border: 1px solid var(--line);
@@ -119,21 +133,10 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   animation-delay: calc(var(--i) * 90ms);
 }
 .hero-strip:nth-child(even) { --lift: 60px; }
+/* No blue tap flash on the picture or its project box; taps there page through projects. */
+.hero-strip, .strip-cta { -webkit-tap-highlight-color: transparent; }
 .hero-strip:first-child, .hero-strip:last-child { flex-basis: var(--skew-shift); }
 .hero-strip.is-active { flex-grow: 2.4; filter: none; box-shadow: inset 0 0 40px rgba(127, 231, 255, .16); }
-/* The active strip names its project in a glass box, readable over bright pictures too.
-   Sits in the fully opaque band of the mask. */
-.strip-label {
-  position: absolute; z-index: 1; top: 24%; left: 22px; right: 22px;
-  transform: skewX(var(--strip-skew));
-}
-.strip-title {
-  display: inline-block; max-width: 340px; padding: 14px 18px;
-  font-family: 'Noto Sans KR', sans-serif; font-size: 18px; font-weight: 700; line-height: 1.45; color: #fff; word-break: keep-all;
-  opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .4s;
-}
-.strip-title small { display: block; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); }
-.hero-strip.is-active .strip-title { opacity: 1; transform: none; transition-delay: .5s; }
 /* Phone layout: box that appears where the middle of the picture is tapped. */
 .strip-cta {
   position: absolute; z-index: 3; padding: 12px 18px; border-color: rgba(127, 231, 255, .55);
@@ -149,7 +152,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .hero-progress span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .25); overflow: hidden; }
 .hero-progress span::after { content: ''; display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
 .hero-progress .is-done::after { transform: none; }
-.hero-progress .is-active::after { animation: progress-fill var(--cycle) linear forwards; }
+.hero-progress .is-active::after { animation: progress-fill 3.2s linear forwards; animation-duration: inherit; }
 .hero.is-held .hero-progress .is-active::after { animation-play-state: paused; }
 @keyframes progress-fill { to { transform: none; } }
 .hero-strip img, .hero-strip video {
@@ -179,8 +182,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .hero h1 { font-family: 'Noto Sans KR', sans-serif; font-size: clamp(32px, 3.4vw, 46px); line-height: 1.28; font-weight: 900; margin: 0 0 14px; }
 .hero-description { font-family: 'Noto Sans KR', sans-serif; font-size: 15px; line-height: 1.9; color: #c3ccd4; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; text-shadow: none; }
-.hero-spot { position: relative; z-index: 1; width: 340px; padding: 18px; transition: border-color .25s; }
-.hero-spot:hover { border-color: rgba(127, 231, 255, .55); }
+/* Information only: shows the active strip's project and is not a link. */
+.hero-spot { position: relative; z-index: 1; width: 340px; padding: 18px; }
 .spot-label { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--muted); margin-bottom: 12px; }
 .spot-live { color: var(--accent); white-space: nowrap; }
 .spot-live::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 2px; box-shadow: 0 0 10px var(--accent); }
@@ -446,7 +449,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   .brand-mark, .github-link { width: 40px; height: 40px; border-radius: 12px; }
   .brand-mark { font-size: 16px; }
   .main-nav { padding: 4px; border-radius: 16px; }
-  .main-nav a { padding: 8px 11px; font-size: 12px; border-radius: 12px; }
+  .main-nav a, .nav-indicator { border-radius: 12px; }
+  .main-nav a { padding: 8px 11px; font-size: 12px; }
   .main-nav .nav-contact { display: none; }
   /* pan-y (plus pinch-zoom for magnification): horizontal swipes change the project instead of triggering browser back/forward. */
   .hero { --hero-h: 760px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 14px; padding: 0 16px 32px; touch-action: pan-y pinch-zoom; }
@@ -466,8 +470,6 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   .hero-strip.is-active { opacity: 1; pointer-events: auto; box-shadow: none; }
   /* While the cycle is held the clip is paused; stop the slow drift too, or the still frame appears to shake. */
   .hero.is-held .hero-strip img, .hero.is-held .hero-strip video { animation-play-state: paused; }
-  /* The NOW SHOWING panel names the project. */
-  .strip-title { display: none; }
   .hero-progress { display: flex; position: absolute; z-index: 2; top: 72px; left: 16px; right: 16px; gap: 4px; }
   .section { padding: 70px 16px 0; }
   .section-heading h2 { font-size: 28px; }
