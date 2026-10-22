@@ -111,7 +111,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   position: relative; overflow: hidden;
   min-height: var(--hero-h);
   display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
-  padding: 0 64px 88px;
+  /* Side padding lines the intro and NOW SHOWING up with the sections below (1240px container, 40px gutters). */
+  padding: 0 max(40px, calc((100% - var(--max)) / 2 + 40px)) 88px;
 }
 /* Overscan by the skew shift so the outer strips reach the corners while every strip shows
    the same width across the middle of the screen. */
@@ -122,6 +123,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
      melt into the dark page. */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .35) 9%, #000 20%, #000 40%, rgba(0, 0, 0, .35) 75%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .35) 9%, #000 20%, #000 40%, rgba(0, 0, 0, .35) 75%, transparent 100%);
+  animation: strips-in 1.2s ease-out both;
 }
 /* Each strip leans by --strip-skew; its image is skewed back the same amount to stay upright. */
 .hero-strip {
@@ -133,6 +135,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   animation-delay: calc(var(--i) * 90ms);
 }
 .hero-strip:nth-child(even) { --lift: 60px; }
+/* Overlap neighbours by 1px so fractional widths during the grow/shrink never open a dark seam. */
+.hero-strip + .hero-strip { margin-left: -1px; }
 /* No blue tap flash on the picture or its project box; taps there page through projects. */
 .hero-strip, .strip-cta { -webkit-tap-highlight-color: transparent; }
 .hero-strip:first-child, .hero-strip:last-child { flex-basis: var(--skew-shift); }
@@ -155,16 +159,23 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .hero-progress .is-active::after { animation: progress-fill 3.2s linear forwards; animation-duration: inherit; }
 .hero.is-held .hero-progress .is-active::after { animation-play-state: paused; }
 @keyframes progress-fill { to { transform: none; } }
+/* The picture's width does not follow the strip: it is wider than the widest (active) strip, about 32% of the screen,
+   so a growing or shrinking strip only changes how much is cropped, and the picture never re-scales and jitters. */
 .hero-strip img, .hero-strip video {
-  position: absolute; top: 0; left: 50%; height: 100%; width: calc(100% + 4 * var(--skew-shift) + 60px); max-width: none;
+  position: absolute; top: 0; left: 50%; height: 100%; width: calc(36vw + 4 * var(--skew-shift) + 60px); max-width: none;
   object-fit: cover; transform: translateX(-50%) skewX(var(--strip-skew));
   animation: strip-drift 16s ease-in-out infinite alternate;
   animation-delay: calc(var(--i) * -2.5s);
 }
+/* A strip that is not active has its clip paused; stop the slow drift on it too, or the still frame appears to shake. */
+.hero-strip:not(.is-active) video { animation-play-state: paused; }
+/* Strips only slide in; the fade runs once on the whole row (.hero-strips), so the 1px overlaps between
+   half-transparent strips never add up to a bright line while the page opens. */
 @keyframes strip-in {
-  from { opacity: 0; transform: skewX(calc(-1 * var(--strip-skew))) translateY(var(--lift)); }
-  to { opacity: 1; transform: skewX(calc(-1 * var(--strip-skew))) translateY(0); }
+  from { transform: skewX(calc(-1 * var(--strip-skew))) translateY(var(--lift)); }
+  to { transform: skewX(calc(-1 * var(--strip-skew))) translateY(0); }
 }
+@keyframes strips-in { from { opacity: 0; } }
 @keyframes strip-drift {
   from { transform: translateX(-52%) skewX(var(--strip-skew)) scale(1); }
   to { transform: translateX(-48%) skewX(var(--strip-skew)) scale(1.08); }
@@ -477,7 +488,8 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
   }
-  .hero-strip { position: absolute; inset: 0; opacity: 0; pointer-events: none; animation: none; box-shadow: none; transition: opacity .8s; }
+  .hero-strip, .hero-strip + .hero-strip { position: absolute; inset: 0; margin: 0; opacity: 0; pointer-events: none; animation: none; box-shadow: none; transition: opacity .8s; }
+  .hero-strip img, .hero-strip video { width: calc(100% + 60px); }
   .hero-strip.is-active { opacity: 1; pointer-events: auto; box-shadow: none; }
   /* While the cycle is held the clip is paused; stop the slow drift too, or the still frame appears to shake. */
   .hero.is-held .hero-strip img, .hero.is-held .hero-strip video { animation-play-state: paused; }
