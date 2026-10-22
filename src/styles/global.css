@@ -226,15 +226,20 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .project-card {
   overflow: hidden; border-radius: 22px; background: var(--glass); border: 1px solid var(--line);
   transition: border-color .25s, box-shadow .25s, transform .25s;
+  /* Keep the card on its own layer before hover, so the lift does not create layers on its first frame. */
+  will-change: transform;
 }
 .project-card:hover {
   border-color: rgba(127, 231, 255, .55); transform: translateY(-4px);
   box-shadow: 0 0 0 1px rgba(127, 231, 255, .2), 0 20px 60px -20px rgba(127, 231, 255, .35);
 }
 .project-image { position: relative; display: block; aspect-ratio: 1.55; overflow: hidden; background: var(--bg-2); }
-.project-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
-.project-card:hover .project-image img { transform: scale(1.03); }
-.project-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(5, 7, 10, .6)); }
+/* The image and its bottom shade zoom together on one layer, so the shade can never slip off the picture's
+   bottom edge (a bright line) while the card lifts. */
+.project-zoom { position: relative; display: block; height: 100%; transition: transform .5s; will-change: transform; }
+.project-zoom::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(5, 7, 10, .6)); }
+.project-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.project-card:hover .project-zoom { transform: scale(1.03); }
 .project-info { padding: 18px 20px 22px; }
 .project-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; letter-spacing: 1.4px; color: var(--muted); }
 .project-info h3 { font-family: 'Noto Sans KR', sans-serif; font-size: 18px; line-height: 1.45; font-weight: 700; margin: 10px 0 8px; }
@@ -268,7 +273,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 /* Career */
 .career { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 28px; align-items: start; }
 .profile { padding: 30px; }
-.profile img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; object-position: 50% 27%; border: 2px solid rgba(127, 231, 255, .4); }
+.profile img { width: 168px; height: 168px; border-radius: 50%; object-fit: cover; object-position: 50% 27%; border: 2px solid rgba(127, 231, 255, .4); }
 .profile strong { display: block; font-family: 'Noto Sans KR', sans-serif; font-size: 22px; margin-top: 18px; }
 .profile-role { display: block; font-size: 12px; color: var(--accent); margin-top: 6px; }
 .profile p { font-family: 'Noto Sans KR', sans-serif; font-size: 13.5px; line-height: 1.9; color: #c3ccd4; margin-top: 18px; }
@@ -286,12 +291,18 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .timeline ul ul { margin: 0; list-style: circle; }
 
 /* Contact + footer */
+/* Same width as the content above it: the page's container (--contact-max) minus its 40px side gutters. */
 .contact-section {
-  max-width: calc(var(--max) - 80px); margin: 110px auto 0; padding: 34px 40px;
+  --contact-max: var(--max);
+  width: calc(min(100%, var(--contact-max)) - 80px); margin: 110px auto 0; padding: 34px 40px;
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; border-radius: 22px;
   border: 1px solid var(--line); background: linear-gradient(120deg, rgba(127, 231, 255, .16), rgba(127, 231, 255, .03));
 }
 .contact-section h2 { font-size: 26px; font-weight: 700; letter-spacing: .5px; }
+/* Archive pages and project pages without a table of contents use the narrower 1000px container. */
+main:has(.archive-page, .detail-grid.no-toc) + .contact-section { --contact-max: 1000px; }
+/* Project pages already end with 90px of padding. */
+main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 .contact-section a { font-size: 22px; color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 4px; }
 .site-footer { max-width: var(--max); margin: 0 auto; padding: 40px 40px 50px; display: flex; justify-content: flex-end; text-align: right; }
 .site-footer a { font-size: 12px; color: var(--muted); }
@@ -478,7 +489,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   .project-card:hover { transform: none; }
   .timeline > a { grid-template-columns: 1fr; gap: 8px; padding: 20px; }
   .profile { padding: 24px; }
-  .contact-section { margin: 70px 16px 0; padding: 26px 22px; }
+  .contact-section { width: calc(100% - 32px); margin-top: 70px; padding: 26px 22px; }
+  main:has(.detail-grid) + .contact-section { width: calc(100% - 24px); }
   .contact-section a { font-size: 18px; }
   .site-footer { padding: 30px 16px 40px; }
   .side-nav { right: 4px; gap: 0; padding: 4px 3px; }
