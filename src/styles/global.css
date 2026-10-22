@@ -458,7 +458,6 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   .hero h1 { font-size: 30px; }
   .hero-description { font-size: 14px; }
   .hero-spot { width: auto; padding: 14px 16px; }
-  .hero-spot p { display: none; }
   /* Phones: the strips stack into one full-width project at a time that crossfades, like stories.
      They fill the upper part of the hero so square clips keep most of their width; the text sits below. */
   .hero-strips {

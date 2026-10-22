@@ -32,13 +32,19 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
       const path=location.pathname;
       if(path==='/'){const sections=[['work','/#work'],['about','/#about']].map(([id,href])=>[document.getElementById(id)!,byHref(href)] as const);
         // Going to a section from the menu (or arriving at /#section) marks the target at once and ignores the sections
-        // the smooth scroll passes on the way, until it gets there or stops.
-        let target=byHref(`/${location.hash}`);
-        const spy=()=>{let link:HTMLAnchorElement|null=null;for(const [el,a] of sections)if(el.getBoundingClientRect().top<=innerHeight*.4)link=a;
-          if(target){if(link!==target)return;target=null;}if(link!==current)place(link);};
-        links.forEach(a=>a.addEventListener('click',()=>{if(!sections.some(([,s])=>s===a))return;target=a;place(a);}));
-        addEventListener('scroll',spy,{passive:true});addEventListener('scrollend',()=>{target=null;spy();});
-        if(target)place(target);else spy();}
+        // the smooth scroll passes on the way. The pin lets go when the target is reached, when scrolling stops (or never
+        // starts, e.g. already there or the browser restored another position), or when the reader scrolls by hand.
+        const spot=()=>{let link:HTMLAnchorElement|null=null;for(const [el,a] of sections)if(el.getBoundingClientRect().top<=innerHeight*.4)link=a;return link;};
+        let target:HTMLAnchorElement|null=null,idle:number|undefined;
+        const spy=()=>{const link=spot();if(target){if(link!==target)return;release();return;}if(link!==current)place(link);};
+        function release(){target=null;clearTimeout(idle);spy();}
+        const waitForStop=()=>{clearTimeout(idle);idle=setTimeout(release,150);};
+        const pin=(a:HTMLAnchorElement)=>{target=a;place(a);waitForStop();};
+        links.forEach(a=>a.addEventListener('click',()=>{if(sections.some(([,s])=>s===a))pin(a);}));
+        addEventListener('scroll',()=>{if(target)waitForStop();spy();},{passive:true});
+        for(const type of ['wheel','touchstart','keydown'])addEventListener(type,()=>{if(target)release();},{passive:true});
+        const arrival=byHref(`/${location.hash}`);
+        if(arrival)pin(arrival);else spy();}
       else place(path.startsWith('/archive')?byHref('/archive/'):path.startsWith('/work/')?byHref('/#work'):null);
       // Re-measure when the layout or fonts change; fade in only after the first placement.
       addEventListener('resize',()=>place(current));document.fonts.ready.then(()=>place(current));
