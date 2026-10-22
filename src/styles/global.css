@@ -296,7 +296,8 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
   --contact-max: var(--max);
   width: calc(min(100%, var(--contact-max)) - 80px); margin: 110px auto 0; padding: 34px 40px;
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; border-radius: 22px;
-  border: 1px solid var(--line); background: linear-gradient(120deg, rgba(127, 231, 255, .16), rgba(127, 231, 255, .03));
+  /* One flat tint (the old gradient's left end) with a slightly brighter outline, so the edge reads evenly all around. */
+  border: 1px solid rgba(127, 231, 255, .3); background: rgba(127, 231, 255, .16);
 }
 .contact-section h2 { font-size: 26px; font-weight: 700; letter-spacing: .5px; }
 /* Archive pages and project pages without a table of contents use the narrower 1000px container. */
