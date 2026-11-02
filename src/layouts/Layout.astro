@@ -62,7 +62,7 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
         const body=JSON.stringify({eventId:crypto.randomUUID()});
         for(let attempt=0;attempt<2;attempt++){
           try{
-            const response=await fetch('https://mjry1hrfdb.execute-api.ap-northeast-2.amazonaws.com/    pageview',{
+            const response=await fetch('https://mjry1hrfdb.execute-api.ap-northeast-2.amazonaws.com/pageview',{
               method:'POST',
               headers:{'Content-Type':'application/json'},
               body,
