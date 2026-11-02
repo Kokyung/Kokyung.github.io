@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-const {title='변고경 포트폴리오', description='Unity XR 프로그래머 변고경의 포트폴리오.'}=Astro.props;
+const {title='변고경 포트폴리오', description='Unity XR 프로그래머 변고경의 포트폴리오.', trackPageview=true}=Astro.props;
 ---
 <!doctype html>
 <html lang="ko">
@@ -10,7 +10,7 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
     <meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:type" content="website"/>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
   </head>
-  <body>
+  <body data-track-pageview={trackPageview ? 'true' : undefined}>
     <a class="skip-link" href="#main">본문으로 이동</a>
     <header class="site-header">
       <a class="brand" href="/" aria-label="홈"><span class="brand-mark">b<span>kk</span></span></a>
@@ -56,6 +56,29 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
       // Re-measure when the layout or fonts change; fade in only after the first placement.
       addEventListener('resize',()=>place(current));document.fonts.ready.then(()=>place(current));
       requestAnimationFrame(()=>requestAnimationFrame(()=>nav.classList.add('is-ready')));
+    </script>
+    <script>
+      async function recordPageview(){
+        const body=JSON.stringify({eventId:crypto.randomUUID()});
+        for(let attempt=0;attempt<2;attempt++){
+          try{
+            const response=await fetch('https://mjry1hrfdb.execute-api.ap-northeast-2.amazonaws.com/    pageview',{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body,
+              keepalive:true,
+              signal:AbortSignal.timeout(8000),
+            });
+            if(response.ok||(response.status!==429&&response.status<500))return;
+          }catch{
+            // A failed count must not interrupt the page.
+          }
+          if(attempt===0)await new Promise(resolve=>setTimeout(resolve,1000));
+        }
+      }
+      if(import.meta.env.PROD&&location.origin==='https://kokyung.github.io'&&document.body.dataset.    trackPageview==='true'){
+        void recordPageview().catch(()=>{});
+      }
     </script>
   </body>
 </html>
