@@ -299,7 +299,6 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .timeline h3 { font-family: 'Noto Sans KR', sans-serif; font-size: 18px; }
 .timeline p { font-family: 'Noto Sans KR', sans-serif; font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.7; }
 .timeline ul { margin: 10px 0 0; padding-left: 18px; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; line-height: 1.85; color: #c3ccd4; }
-.timeline ul ul { margin: 0; list-style: circle; }
 
 /* Contact + footer */
 /* Same width as the content above it: the page's container (--contact-max) minus its 40px side gutters. */
