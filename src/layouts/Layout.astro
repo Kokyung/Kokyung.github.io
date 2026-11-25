@@ -9,18 +9,34 @@ const {title='변고경 포트폴리오', description='Unity XR 프로그래머 
     <title>{title}</title><meta name="description" content={description}/><meta name="theme-color" content="#05070a"/><meta name="color-scheme" content="only dark"/>
     <meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:type" content="website"/>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <script is:inline>
+      // Theme before first paint: the reader's saved choice, else the device setting (light or dark).
+      (()=>{let t=null;try{t=localStorage.getItem('theme');}catch{}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+        document.documentElement.dataset.theme=t;document.querySelector('meta[name=color-scheme]').content=`only ${t}`;document.querySelector('meta[name=theme-color]').content=t==='light'?'#f5efe4':'#05070a';})();
+    </script>
   </head>
   <body data-track-pageview={trackPageview ? 'true' : undefined}>
     <a class="skip-link" href="#main">본문으로 이동</a>
     <header class="site-header">
       <a class="brand" href="/" aria-label="홈"><span class="brand-mark">b<span>kk</span></span></a>
       <nav class="main-nav" aria-label="주요 메뉴"><span class="nav-indicator" aria-hidden="true"></span><a href="/#work">프로젝트</a><a href="/#about">경력</a><a href="/archive/">아카이브</a><a class="nav-contact" href="#contact">CONTACT</a></nav>
-      <a class="github-link" href="https://github.com/Kokyung" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+      <div class="header-actions"><button class="theme-toggle" type="button" aria-label="테마 전환"><svg class="icon-sun" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg><svg class="icon-moon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button><a class="github-link" href="https://github.com/Kokyung" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></div>
     </header>
     <main id="main"><slot/></main>
     <section class="contact-section" id="contact"><h2>CONTACT</h2><a href="mailto:kokyungbyun@gmail.com">kokyungbyun@gmail.com</a></section>
     <footer class="site-footer"><div><a href="mailto:kokyungbyun@gmail.com">kokyungbyun@gmail.com</a><p>© {new Date().getFullYear()} BYUN KOKYUNG</p></div></footer>
     <script>
+      // Theme toggle: switching saves the choice; until the reader chooses, the page follows the device setting as it changes.
+      const root=document.documentElement;
+      const themeToggle=document.querySelector<HTMLButtonElement>('.theme-toggle')!;
+      const lightQuery=matchMedia('(prefers-color-scheme: light)');
+      const savedTheme=()=>{try{const t=localStorage.getItem('theme');return t==='light'||t==='dark'?t:null;}catch{return null;}};
+      function applyTheme(t:'light'|'dark'){root.dataset.theme=t;document.querySelector<HTMLMetaElement>('meta[name=color-scheme]')!.content=`only ${t}`;
+        document.querySelector<HTMLMetaElement>('meta[name=theme-color]')!.content=t==='light'?'#f5efe4':'#05070a';
+        themeToggle.setAttribute('aria-label',t==='light'?'다크 테마로 전환':'라이트 테마로 전환');}
+      applyTheme(root.dataset.theme==='light'?'light':'dark');
+      themeToggle.addEventListener('click',()=>{const t=root.dataset.theme==='light'?'dark':'light';applyTheme(t);try{localStorage.setItem('theme',t);}catch{}});
+      lightQuery.addEventListener('change',e=>{if(!savedTheme())applyTheme(e.matches?'light':'dark');});
       // Header menu: a rounded highlight marks the item for where the reader is (it jumps, without sliding). It follows the
       // sections in view: on the home page 프로젝트 / 경력 (none over the hero), on every page CONTACT at the bottom; elsewhere
       // the page's own item (아카이브, or 프로젝트 for project pages) is marked otherwise.
