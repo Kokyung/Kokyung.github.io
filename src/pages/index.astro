@@ -4,7 +4,7 @@ import ProjectCard from '../components/ProjectCard.astro';
 import {projects} from '../data/projects';
 import pageMedia from '../data/page-media.json';
 const spotlight=projects.find(p=>p.slug==='xr-ai-pipeline')!;
-// Slanted image strips behind the hero: the newest projects, using the same thumbnail as their cards.
+// Image strips behind the hero, shown one at a time: the newest projects, using the same thumbnail as their cards.
 const STRIP_COUNT=6;
 // Some strips play a short muted clip (public/media/strip-<name>.mp4, with its first frame as the still).
 // seconds: the clip's length; its strip stays active that long so the clip plays once.
@@ -47,15 +47,13 @@ const PAGE_SIZE=9;
   function filter(){const query=input.value.trim().toLowerCase();matched=cards.filter(card=>(category==='all'||card.dataset.tags!.split('|').includes(category))&&(!query||card.dataset.search?.includes(query)));page=1;render();document.querySelector<HTMLElement>('#empty-state')!.hidden=matched.length>0;buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===category)));}
   pager.addEventListener('click',e=>{const b=(e.target as HTMLElement).closest<HTMLButtonElement>('button[data-page]');if(!b||b.disabled)return;page=Number(b.dataset.page);render();document.querySelector('#work')!.scrollIntoView({behavior:'smooth'});});
   render();
-  // Hero strips: highlight one strip at a time and show its project in the NOW SHOWING panel;
-  // the cycle pauses while the pointer is over the hero, and hovering a strip takes over.
-  // On phones the strips stack into one full-width project at a time with a story-style progress bar and swipe.
+  // Hero strips: one full-width project at a time, like stories, with a progress bar and swipe;
+  // the active project is also shown in the NOW SHOWING panel.
   // Image strips stay active for CYCLE; clip strips for their clip's length (data-duration).
   const CYCLE=3200;
   const hero=document.querySelector<HTMLElement>('.hero')!;
   const strips=[...document.querySelectorAll<HTMLAnchorElement>('.hero-strip')];
   const segments=[...document.querySelectorAll<HTMLElement>('.hero-progress span')];
-  const stackedLayout=matchMedia('(max-width: 760px)');
   const spot=document.querySelector<HTMLElement>('.hero-spot')!;
   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let activeStrip=Math.max(0,strips.findIndex(s=>s.classList.contains('is-active')));
@@ -71,24 +69,18 @@ const PAGE_SIZE=9;
   // Only the active strip's clip plays, from the start; reduced motion keeps the still frame.
   const clipsAllowed=!reducedMotion;
   function playClip(){strips.forEach((s,j)=>{const v=s.querySelector('video');if(!v)return;if(j===activeStrip&&clipsAllowed){v.currentTime=0;v.play().catch(()=>{});}else v.pause();});}
-  // In the phone layout a held cycle also pauses the clip, matching the stopped progress bar; it plays on when the cycle resumes.
+  // A held cycle also pauses the clip, matching the stopped progress bar; it plays on when the cycle resumes.
   const activeClip=()=>strips[activeStrip].querySelector('video');
   function stopStrips(){if(running){clearTimeout(stripTimer);remaining=Math.max(0,remaining-(performance.now()-startedAt));running=false;}
-    hero.classList.add('is-held');if(stackedLayout.matches)activeClip()?.pause();}
+    hero.classList.add('is-held');activeClip()?.pause();}
   function startStrips(){if(reducedMotion||running)return;running=true;hero.classList.remove('is-held');if(clipsAllowed)activeClip()?.play().catch(()=>{});
     startedAt=performance.now();stripTimer=setTimeout(()=>{running=false;showStrip((activeStrip+1)%strips.length);startStrips();},remaining);}
-  // Hold the cycle while the pointer, keyboard focus or the phone tap box is in the hero, so a focused link keeps its project.
-  let pointerInHero=false,keyboardInHero=false,ctaOpen=false;
-  // Mouse only: a tap on a touch screen should not stop the cycle or switch strips.
-  strips.forEach((s,i)=>s.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')showStrip(i);}));
-  const heroHeld=()=>pointerInHero||keyboardInHero||ctaOpen;
-  // Hovering holds the cycle only in the strip layout; the stacked phone layout fills the screen, so a mouse is always over it.
-  const releasePointer=()=>{if(!pointerInHero)return;pointerInHero=false;if(!heroHeld())startStrips();};
-  hero.addEventListener('pointerenter',e=>{if(e.pointerType!=='mouse'||stackedLayout.matches)return;pointerInHero=true;stopStrips();});
-  hero.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')releasePointer();});
-  stackedLayout.addEventListener('change',()=>{if(stackedLayout.matches)releasePointer();else{hideCta();if(hero.matches(':hover')){pointerInHero=true;stopStrips();}}});
-  // Phone layout: tapping the left or right third of the picture goes back or forward; tapping the middle opens
-  // a "프로젝트 확인" box at the tap point, and tapping the box opens the project. While the box is open, any other
+  // Hold the cycle while keyboard focus or the project box is in the hero, so a focused link keeps its project.
+  // Hovering does not hold it: the picture fills the hero, so a mouse is almost always over it.
+  let keyboardInHero=false,ctaOpen=false;
+  const heroHeld=()=>keyboardInHero||ctaOpen;
+  // Tapping or clicking the left or right third of the picture goes back or forward; the middle opens
+  // a "프로젝트 확인" box at that point, and the box opens the project. While the box is open, any other
   // tap just closes it.
   const cta=document.querySelector<HTMLAnchorElement>('.strip-cta')!;
   // The box fades out like it fades in, then hides (at once under reduced motion, where no animation runs).
@@ -103,7 +95,7 @@ const PAGE_SIZE=9;
   hero.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;swiped=false;},{passive:true});
   hero.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;swiped=true;step(dx<0?1:-1);});
   hero.addEventListener('click',e=>{if(swiped){e.preventDefault();swiped=false;return;}
-    if(!stackedLayout.matches||cta.contains(e.target as Node))return;
+    if(cta.contains(e.target as Node))return;
     const onStrip=!!(e.target as Element).closest('.hero-strip');if(onStrip)e.preventDefault();
     if(ctaOpen||!onStrip){hideCta();return;}
     const r=hero.getBoundingClientRect(),x=e.clientX-r.left;

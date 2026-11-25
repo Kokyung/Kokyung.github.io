@@ -41,17 +41,17 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .glass {
   background: var(--glass);
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: 11px;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 .eyebrow { font-size: 11px; letter-spacing: 2.4px; color: var(--accent); font-weight: 500; }
-.skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; background: var(--accent); color: var(--bg); padding: 12px 16px; border-radius: 10px; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; background: var(--accent); color: var(--bg); padding: 12px 16px; border-radius: 5px; }
 .skip-link:focus { top: 12px; }
 
 .button {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 13px 20px; border-radius: 14px; border: 1px solid var(--line);
+  padding: 13px 20px; border-radius: 7px; border: 1px solid var(--line);
   background: transparent; color: #dfe7ee; font-size: 13px; font-weight: 700;
   transition: background .2s, border-color .2s, color .2s;
 }
@@ -67,7 +67,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .site-header > * { pointer-events: auto; }
 .brand-mark {
-  width: 46px; height: 46px; border-radius: 14px;
+  width: 46px; height: 46px; border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
   background: var(--glass-strong); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -75,12 +75,12 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .brand-mark span { color: var(--accent); }
 .main-nav {
-  position: relative; display: flex; gap: 4px; padding: 6px; border-radius: 20px;
+  position: relative; display: flex; gap: 4px; padding: 6px; border-radius: 10px;
   background: var(--glass-strong); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
 .main-nav a {
-  position: relative; z-index: 1; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 500; color: #cfd8e0;
+  position: relative; z-index: 1; padding: 10px 18px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #cfd8e0;
   -webkit-tap-highlight-color: transparent;
 }
 /* Hover only where a real pointer hovers; on touch screens :hover sticks to the last tapped item and leaves a
@@ -91,11 +91,11 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 }
 .main-nav a[aria-current] { color: #fff; }
 /* Rounded highlight behind the current item; sized and moved by the layout script. */
-.nav-indicator { position: absolute; top: 0; left: 0; border-radius: 14px; background: rgba(255, 255, 255, .14); opacity: 0; pointer-events: none; }
+.nav-indicator { position: absolute; top: 0; left: 0; border-radius: 7px; background: rgba(255, 255, 255, .14); opacity: 0; pointer-events: none; }
 .nav-indicator.is-on { opacity: 1; }
 .main-nav.is-ready .nav-indicator { transition: opacity .25s; }
 .github-link {
-  width: 46px; height: 46px; border-radius: 14px; display: grid; place-content: center;
+  width: 46px; height: 46px; border-radius: 7px; display: grid; place-content: center;
   background: var(--glass-strong); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); color: #dfe7ee;
 }
@@ -103,45 +103,31 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 
 /* Home: hero over the portal image */
 .hero {
-  /* --strip-skew: lean of the image strips from vertical (0deg = upright, 30deg = sides at 60°).
-     --skew-shift: how far a strip edge leans across half the hero height. */
   --hero-h: clamp(640px, 100vh, 940px);
-  --strip-skew: 0deg;
-  --skew-shift: calc(var(--hero-h) * tan(var(--strip-skew)) / 2);
+  /* Left/right inset that lines the intro, NOW SHOWING and progress bar up with the sections below
+     (1240px container, 40px gutters). */
+  --hero-side: max(40px, calc((100% - var(--max)) / 2 + 40px));
   position: relative; overflow: hidden;
   min-height: var(--hero-h);
   display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
-  /* Side padding lines the intro and NOW SHOWING up with the sections below (1240px container, 40px gutters). */
-  padding: 0 max(40px, calc((100% - var(--max)) / 2 + 40px)) 88px;
+  padding: 0 var(--hero-side) 88px;
+  /* pan-y (plus pinch-zoom for magnification): horizontal swipes change the project instead of triggering browser back/forward. */
+  touch-action: pan-y pinch-zoom;
 }
-/* Overscan by the skew shift so the outer strips reach the corners while every strip shows
-   the same width across the middle of the screen. */
+/* The strips stack into one full-width project at a time that crossfades, like stories. */
 .hero-strips {
-  position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--skew-shift)); right: calc(-1 * var(--skew-shift));
-  display: flex;
-  /* Fade the strips out toward the top (behind the header) and the bottom so even bright pictures
+  position: absolute; inset: 0;
+  /* Fade the picture out toward the top (behind the header) and the bottom so even bright pictures
      melt into the dark page. */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .35) 9%, #000 20%, #000 40%, rgba(0, 0, 0, .35) 75%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .35) 9%, #000 20%, #000 40%, rgba(0, 0, 0, .35) 75%, transparent 100%);
   animation: strips-in 1.2s ease-out both;
 }
-/* Each strip leans by --strip-skew; its image is skewed back the same amount to stay upright. */
-.hero-strip {
-  --lift: -60px;
-  position: relative; flex: 1 1 0; overflow: hidden; transform: skewX(calc(-1 * var(--strip-skew)));
-  filter: brightness(.7) saturate(.85);
-  transition: flex-grow 1.1s cubic-bezier(.65, 0, .35, 1), filter .8s, box-shadow .8s;
-  animation: strip-in 1s cubic-bezier(.2, .7, .2, 1) both;
-  animation-delay: calc(var(--i) * 90ms);
-}
-.hero-strip:nth-child(even) { --lift: 60px; }
-/* Overlap neighbours by 1px so fractional widths during the grow/shrink never open a dark seam. */
-.hero-strip + .hero-strip { margin-left: -1px; }
+.hero-strip { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: opacity .8s; }
+.hero-strip.is-active { opacity: 1; pointer-events: auto; }
 /* No blue tap flash on the picture or its project box; taps there page through projects. */
 .hero-strip, .strip-cta { -webkit-tap-highlight-color: transparent; }
-.hero-strip:first-child, .hero-strip:last-child { flex-basis: var(--skew-shift); }
-.hero-strip.is-active { flex-grow: 2.4; filter: none; box-shadow: inset 0 0 40px rgba(127, 231, 255, .16); }
-/* Phone layout: box that appears where the middle of the picture is tapped. */
+/* Box that appears where the middle of the picture is tapped or clicked. */
 .strip-cta {
   position: absolute; z-index: 3; padding: 12px 18px; border-color: rgba(127, 231, 255, .55);
   font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap;
@@ -151,34 +137,27 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 @keyframes cta-in { from { opacity: 0; transform: scale(.9); } }
 .strip-cta.is-leaving { animation: cta-out .12s ease-in forwards; pointer-events: none; }
 @keyframes cta-out { to { opacity: 0; transform: scale(.9); } }
-/* Story-style progress bar, shown on phones only. */
-.hero-progress { display: none; }
-.hero-progress span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .25); overflow: hidden; }
+/* Story-style progress bar, just below the header. */
+.hero-progress { display: flex; position: absolute; z-index: 2; top: 96px; left: var(--hero-side); right: var(--hero-side); gap: 4px; }
+.hero-progress span { flex: 1; height: 3px; border-radius: 1px; background: rgba(255, 255, 255, .25); overflow: hidden; }
 .hero-progress span::after { content: ''; display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
 .hero-progress .is-done::after { transform: none; }
 .hero-progress .is-active::after { animation: progress-fill 3.2s linear forwards; animation-duration: inherit; }
 .hero.is-held .hero-progress .is-active::after { animation-play-state: paused; }
 @keyframes progress-fill { to { transform: none; } }
-/* The picture's width does not follow the strip: it is wider than the widest (active) strip, about 32% of the screen,
-   so a growing or shrinking strip only changes how much is cropped, and the picture never re-scales and jitters. */
+/* 60px wider than the hero so the slow sideways drift never shows an edge. */
 .hero-strip img, .hero-strip video {
-  position: absolute; top: 0; left: 50%; height: 100%; width: calc(36vw + 4 * var(--skew-shift) + 60px); max-width: none;
-  object-fit: cover; transform: translateX(-50%) skewX(var(--strip-skew));
+  position: absolute; top: 0; left: 50%; height: 100%; width: calc(100% + 60px); max-width: none;
+  object-fit: cover; transform: translateX(-50%);
   animation: strip-drift 16s ease-in-out infinite alternate;
   animation-delay: calc(var(--i) * -2.5s);
 }
-/* A strip that is not active has its clip paused; stop the slow drift on it too, or the still frame appears to shake. */
-.hero-strip:not(.is-active) video { animation-play-state: paused; }
-/* Strips only slide in; the fade runs once on the whole row (.hero-strips), so the 1px overlaps between
-   half-transparent strips never add up to a bright line while the page opens. */
-@keyframes strip-in {
-  from { transform: skewX(calc(-1 * var(--strip-skew))) translateY(var(--lift)); }
-  to { transform: skewX(calc(-1 * var(--strip-skew))) translateY(0); }
-}
+/* A paused clip (inactive strip or held cycle) also stops the slow drift, or the still frame appears to shake. */
+.hero-strip:not(.is-active) video, .hero.is-held .hero-strip img, .hero.is-held .hero-strip video { animation-play-state: paused; }
 @keyframes strips-in { from { opacity: 0; } }
 @keyframes strip-drift {
-  from { transform: translateX(-52%) skewX(var(--strip-skew)) scale(1); }
-  to { transform: translateX(-48%) skewX(var(--strip-skew)) scale(1.08); }
+  from { transform: translateX(-52%) scale(1); }
+  to { transform: translateX(-48%) scale(1.08); }
 }
 .hero::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -208,14 +187,14 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 
 /* Project filters */
 .filter-bar {
-  display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 20px;
+  display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: 10px;
   background: var(--glass); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
 .filters { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
 .filters button {
   display: flex; align-items: center; gap: 7px; line-height: 1.2;
-  border: 0; border-radius: 14px; padding: 9px 14px; background: transparent;
+  border: 0; border-radius: 7px; padding: 9px 14px; background: transparent;
   font-size: 12px; font-weight: 500; color: #c3ccd4; transition: background .2s, color .2s;
 }
 .filters button span { font-size: 10px; line-height: 1; color: var(--faint); }
@@ -225,7 +204,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .filters .tag-toggle { border: 1px dashed var(--line); }
 .search-box {
   display: flex; align-items: center; gap: 8px; min-width: 210px; align-self: center;
-  padding: 8px 14px; border: 1px solid var(--line); border-radius: 14px; color: var(--faint);
+  padding: 8px 14px; border: 1px solid var(--line); border-radius: 7px; color: var(--faint);
 }
 .search-box input { width: 100%; border: 0; outline: none; background: transparent; color: var(--ink); font-size: 12px; }
 .search-box input::placeholder { color: var(--faint); }
@@ -235,7 +214,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 /* Project cards */
 .project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 22px; }
 .project-card {
-  overflow: hidden; border-radius: 22px; background: var(--glass); border: 1px solid var(--line);
+  overflow: hidden; border-radius: 11px; background: var(--glass); border: 1px solid var(--line);
   transition: border-color .25s, box-shadow .25s, transform .25s;
   /* Keep the card on its own layer before hover, so the lift does not create layers on its first frame. */
   will-change: transform;
@@ -270,7 +249,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 
 .pager { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 40px; }
 .pager button {
-  min-width: 38px; height: 38px; padding: 0 8px; border-radius: 12px;
+  min-width: 38px; height: 38px; padding: 0 8px; border-radius: 6px;
   display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid transparent; background: transparent; font-size: 13px; color: var(--muted);
 }
@@ -292,7 +271,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .timeline { display: flex; flex-direction: column; gap: 14px; }
 .timeline > a {
   display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 20px; padding: 24px 28px;
-  border-radius: 22px; background: var(--glass); border: 1px solid var(--line); transition: border-color .25s;
+  border-radius: 11px; background: var(--glass); border: 1px solid var(--line); transition: border-color .25s;
 }
 .timeline > a:hover { border-color: rgba(127, 231, 255, .45); }
 .timeline-date { font-size: 12px; color: var(--muted); padding-top: 4px; }
@@ -305,7 +284,7 @@ h1, h2, h3, p { margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .contact-section {
   --contact-max: var(--max);
   width: calc(min(100%, var(--contact-max)) - 80px); margin: 110px auto 0; padding: 34px 40px;
-  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; border-radius: 22px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px; border-radius: 11px;
   /* One flat tint (the old gradient's left end) with a slightly brighter outline, so the edge reads evenly all around. */
   border: 1px solid rgba(127, 231, 255, .3); background: rgba(127, 231, 255, .16);
 }
@@ -323,7 +302,7 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 /* Right-side section navigation (home) */
 .side-nav {
   position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 15;
-  display: flex; flex-direction: column; gap: 6px; padding: 10px 8px; border-radius: 30px;
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 8px; border-radius: 15px;
   background: var(--glass-strong); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
@@ -333,7 +312,7 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 .side-nav a[aria-current]::before { background: var(--accent); border-color: var(--accent); transform: scale(1.25); box-shadow: 0 0 10px rgba(127, 231, 255, .6); }
 .side-nav span {
   position: absolute; right: 32px; top: 50%; transform: translateY(-50%); white-space: nowrap;
-  font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 4px;
   background: var(--ink); color: var(--bg); opacity: 0; pointer-events: none; transition: opacity .15s;
 }
 .side-nav a:hover span, .side-nav a:focus-visible span { opacity: 1; }
@@ -358,7 +337,7 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 .detail-grid.no-toc { grid-template-columns: minmax(0, 1fr); max-width: 1000px; }
 .document-nav {
   position: sticky; top: 100px; align-self: start; max-height: calc(100vh - 130px); overflow: auto;
-  padding: 20px; border-radius: 22px; background: var(--glass); border: 1px solid var(--line);
+  padding: 20px; border-radius: 11px; background: var(--glass); border: 1px solid var(--line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
 .document-nav summary { font-size: 11px; letter-spacing: 2px; color: var(--accent); font-weight: 600; cursor: pointer; margin-bottom: 12px; }
@@ -368,7 +347,7 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 .document-nav nav a.indent { padding-left: 24px; font-size: 12px; }
 
 .prose {
-  min-width: 0; overflow-wrap: anywhere; border-radius: 24px; padding: 48px 56px;
+  min-width: 0; overflow-wrap: anywhere; border-radius: 12px; padding: 48px 56px;
   background: var(--paper); color: var(--paper-ink);
   font-family: 'Noto Sans KR', sans-serif; font-size: 15px; line-height: 2;
 }
@@ -385,51 +364,51 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 .prose a:not(.page-link):not(.external-block) { color: #0a6f8f; text-decoration: underline; text-decoration-color: #9bc4d2; text-underline-offset: 4px; }
 .prose a:not(.page-link):not(.external-block):hover { color: #054d63; }
 .prose figure { margin: 24px 0; }
-.prose figure img { width: 100%; max-height: 650px; object-fit: contain; border-radius: 14px; background: #e3e8ec; }
+.prose figure img { width: 100%; max-height: 650px; object-fit: contain; border-radius: 7px; background: #e3e8ec; }
 .prose figcaption { font-size: 12px; color: #6b7680; text-align: center; line-height: 1.8; margin-top: 10px; }
-.prose video { width: 100%; max-height: 600px; border-radius: 14px; background: #0b1015; display: block; }
-.youtube { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; border-radius: 14px; background: #0b1015; }
+.prose video { width: 100%; max-height: 600px; border-radius: 7px; background: #0b1015; display: block; }
+.youtube { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; border-radius: 7px; background: #0b1015; }
 .prose .page-link {
   display: flex; justify-content: space-between; align-items: center; gap: 20px; margin: 12px 0;
-  padding: 16px 20px; border-radius: 14px; border: 1px solid var(--paper-line); background: #fff;
+  padding: 16px 20px; border-radius: 7px; border: 1px solid var(--paper-line); background: #fff;
   font-size: 14px; font-weight: 600; line-height: 1.7; color: #0b1015; transition: border-color .2s;
 }
 .prose .page-link:hover { border-color: #0a6f8f; }
 .prose .page-link > span:last-child { color: #0a6f8f; }
 .external-block {
   position: relative; display: flex; flex-direction: column; margin: 18px 0;
-  padding: 16px 44px 16px 20px; border-radius: 14px; border: 1px solid var(--paper-line); background: #fff; line-height: 1.8;
+  padding: 16px 44px 16px 20px; border-radius: 7px; border: 1px solid var(--paper-line); background: #fff; line-height: 1.8;
 }
 .external-block > span:last-child { position: absolute; right: 18px; top: 18px; color: #0a6f8f; }
 .external-block small { font-size: 11px; color: #6b7680; overflow-wrap: anywhere; }
 .content-columns { display: flex; gap: 22px; align-items: flex-start; margin: 20px 0; }
 .content-column { flex: 1; min-width: 0; }
 .content-column figure { margin: 0 0 20px; }
-.callout { margin: 24px 0; padding: 20px 24px; border-radius: 0 14px 14px 0; background: #e6f3f7; border-left: 3px solid #0a6f8f; }
+.callout { margin: 24px 0; padding: 20px 24px; border-radius: 0 7px 7px 0; background: #e6f3f7; border-left: 3px solid #0a6f8f; }
 .callout p:last-child { margin-bottom: 0; }
-.prose details { margin: 20px 0; padding: 0 18px; border-radius: 14px; border: 1px solid var(--paper-line); background: #fff; }
+.prose details { margin: 20px 0; padding: 0 18px; border-radius: 7px; border: 1px solid var(--paper-line); background: #fff; }
 .prose summary { padding: 14px 0; font-size: 13px; font-weight: 600; color: #0b1015; cursor: pointer; line-height: 1.8; }
 .prose details[open] > summary { border-bottom: 1px solid var(--paper-line); margin-bottom: 16px; }
 .prose pre {
-  margin: 20px 0; padding: 22px; max-width: 100%; overflow: auto; border-radius: 14px;
+  margin: 20px 0; padding: 22px; max-width: 100%; overflow: auto; border-radius: 7px;
   background: #0b1015; color: #d4d4d4; font: 12.5px/1.75 Consolas, 'Courier New', monospace; tab-size: 4; white-space: pre;
 }
-.prose code { font-family: Consolas, 'Courier New', monospace; font-size: .9em; padding: 2px 6px; border-radius: 5px; background: #e5ecf0; color: #0b5c74; }
+.prose code { font-family: Consolas, 'Courier New', monospace; font-size: .9em; padding: 2px 6px; border-radius: 2.5px; background: #e5ecf0; color: #0b5c74; }
 .prose pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
 .prose hr { border: 0; border-top: 1px solid var(--paper-line); margin: 36px 0; }
-.table-scroll { overflow: auto; max-width: 100%; margin: 24px 0; border: 1px solid var(--paper-line); border-radius: 14px; background: #fff; }
+.table-scroll { overflow: auto; max-width: 100%; margin: 24px 0; border: 1px solid var(--paper-line); border-radius: 7px; background: #fff; }
 .prose table { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.8; }
 .prose td, .prose th { padding: 12px; min-width: 95px; border-bottom: 1px solid var(--paper-line); border-right: 1px solid var(--paper-line); }
 .prose tr:first-child { font-weight: 700; background: #eef3f6; color: #0b1015; }
 .prose tr:last-child td { border-bottom: 0; }
-.notion-green_bg, .notion-yellow_bg { background: #def3e6; border-radius: 3px; padding: 1px 4px; }
+.notion-green_bg, .notion-yellow_bg { background: #def3e6; border-radius: 1.5px; padding: 1px 4px; }
 .notion-red { color: #c0392b; }
 
 /* Archive */
 .archive-page { max-width: 1000px; margin: 0 auto; padding: 150px 40px 0; min-height: 80vh; }
 .archive-page h1 { font-family: 'Noto Sans KR', sans-serif; font-size: 40px; font-weight: 900; margin-top: 10px; }
 .archive-search {
-  display: block; width: 100%; margin: 30px 0 14px; padding: 16px 18px; border-radius: 16px;
+  display: block; width: 100%; margin: 30px 0 14px; padding: 16px 18px; border-radius: 8px;
   border: 1px solid var(--line); background: var(--glass); color: var(--ink); font-size: 14px; outline: none;
 }
 .archive-search::placeholder { color: var(--faint); }
@@ -438,15 +417,15 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 #archive-count { font-size: 12px; color: var(--muted); }
 .archive-sort { display: flex; align-items: center; gap: 8px; }
 .archive-sort select {
-  height: 34px; padding: 0 32px 0 12px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer;
+  height: 34px; padding: 0 32px 0 12px; border-radius: 5px; border: 1px solid var(--line); cursor: pointer;
   font-size: 12px; color: var(--ink); -webkit-appearance: none; appearance: none;
   background: var(--glass) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23eef3f7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
 }
 .archive-sort option { background: var(--bg-2); color: var(--ink); }
-.sort-dir { width: 38px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); color: var(--ink); }
+.sort-dir { width: 38px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; border: 1px solid var(--line); background: var(--glass); color: var(--ink); }
 .sort-dir:hover, .archive-sort select:hover { border-color: rgba(127, 231, 255, .55); }
 .sort-dir[data-dir=desc] .icon-asc, .sort-dir[data-dir=asc] .icon-desc { display: none; }
-.archive-list { overflow: hidden; border-radius: 22px; background: var(--glass); border: 1px solid var(--line); }
+.archive-list { overflow: hidden; border-radius: 11px; background: var(--glass); border: 1px solid var(--line); }
 .archive-list > a { display: flex; align-items: center; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--line); transition: background .2s; }
 .archive-list > a:last-child { border-bottom: 0; }
 .archive-list > a:hover { background: rgba(127, 231, 255, .06); }
@@ -468,34 +447,27 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
 @media (max-width: 760px) {
   :root { scroll-padding-top: 84px; }
   .site-header { padding: 12px 16px; gap: 10px; }
-  .brand-mark, .github-link { width: 40px; height: 40px; border-radius: 12px; }
+  .brand-mark, .github-link { width: 40px; height: 40px; border-radius: 6px; }
   .brand-mark { font-size: 16px; }
-  .main-nav { padding: 4px; border-radius: 16px; }
-  .main-nav a, .nav-indicator { border-radius: 12px; }
+  .main-nav { padding: 4px; border-radius: 8px; }
+  .main-nav a, .nav-indicator { border-radius: 6px; }
   .main-nav a { padding: 8px 11px; font-size: 12px; }
   .main-nav .nav-contact { display: none; }
-  /* pan-y (plus pinch-zoom for magnification): horizontal swipes change the project instead of triggering browser back/forward. */
-  .hero { --hero-h: 760px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 14px; padding: 0 16px 32px; touch-action: pan-y pinch-zoom; }
+  .hero { --hero-h: 760px; --hero-side: 16px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 14px; padding: 0 var(--hero-side) 32px; }
   .hero-intro { padding: 0 4px; }
   .hero h1 { font-size: 30px; }
   .hero-description { font-size: 14px; }
   .hero-spot { width: auto; padding: 14px 16px; }
-  /* Phones: the strips stack into one full-width project at a time that crossfades, like stories.
-     They fill the upper part of the hero so square clips keep most of their width; the text sits below. */
+  /* Phones: the picture fills the upper part of the hero so square clips keep most of their width; the text sits below. */
   .hero-strips {
     bottom: 30%;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 60%, transparent 100%);
   }
-  .hero-strip, .hero-strip + .hero-strip { position: absolute; inset: 0; margin: 0; opacity: 0; pointer-events: none; animation: none; box-shadow: none; transition: opacity .8s; }
-  .hero-strip img, .hero-strip video { width: calc(100% + 60px); }
-  .hero-strip.is-active { opacity: 1; pointer-events: auto; box-shadow: none; }
-  /* While the cycle is held the clip is paused; stop the slow drift too, or the still frame appears to shake. */
-  .hero.is-held .hero-strip img, .hero.is-held .hero-strip video { animation-play-state: paused; }
-  .hero-progress { display: flex; position: absolute; z-index: 2; top: 72px; left: 16px; right: 16px; gap: 4px; }
+  .hero-progress { top: 72px; }
   .section { padding: 70px 16px 0; }
   .section-heading h2 { font-size: 28px; }
-  .filter-bar { flex-direction: column; align-items: stretch; border-radius: 18px; }
+  .filter-bar { flex-direction: column; align-items: stretch; border-radius: 9px; }
   .search-box { min-width: 0; align-self: stretch; }
   .project-grid { grid-template-columns: 1fr; gap: 16px; }
   .project-card:hover { transform: none; }
@@ -514,7 +486,7 @@ main:has(.detail-grid) + .contact-section { margin-top: 20px; }
   .detail-subtitle { font-size: 15px; }
   .detail-grid { grid-template-columns: 1fr; padding: 19px 12px 60px; gap: 16px; }
   .document-nav { position: static; max-height: 260px; }
-  .prose { padding: 28px 20px; font-size: 14px; border-radius: 20px; }
+  .prose { padding: 28px 20px; font-size: 14px; border-radius: 10px; }
   .prose h2 { font-size: 22px; }
   .prose h3 { font-size: 19px; }
   .prose h4 { font-size: 16px; }
